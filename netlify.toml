@@ -1,0 +1,11 @@
+# Netlify deploy settings for the SafeVault dashboard + chatbot function.
+[build]
+  publish = "website"
+  functions = "netlify/functions"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    X-Frame-Options = "DENY"
