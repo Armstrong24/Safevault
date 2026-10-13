@@ -1,0 +1,59 @@
+test_full_flow_with_simulated_aws (test_automation.EndToEndSimulatedAWS.test_full_flow_with_simulated_aws) ... ok
+test_compare_reports_missing_changed_unexpected (test_automation.Helpers.test_compare_reports_missing_changed_unexpected) ... ok
+test_cron_line (test_automation.Helpers.test_cron_line) ... ok
+test_failure_never_hides_last_success (test_automation.Helpers.test_failure_never_hides_last_success) ... ok
+test_overlapping_run_is_skipped_and_recorded (test_automation.Helpers.test_overlapping_run_is_skipped_and_recorded) ... ok
+test_public_guard_blocks_version_ids (test_automation.Helpers.test_public_guard_blocks_version_ids) ... ok
+test_scrub_removes_private_identifiers (test_automation.Helpers.test_scrub_removes_private_identifiers) ... ok
+test_access_denied_counted (test_lite.Lite.test_access_denied_counted) ... ok
+test_admin_source_identity_refused (test_lite.Lite.test_admin_source_identity_refused) ... ok
+test_all_documented_commands_dispatch (test_lite.Lite.test_all_documented_commands_dispatch) ... ok
+test_command_dispatch_configuration (test_lite.Lite.test_command_dispatch_configuration) ... ok
+test_embedded_json_escaped (test_lite.Lite.test_embedded_json_escaped) ... ok
+test_empty_dashboard_has_no_success (test_lite.Lite.test_empty_dashboard_has_no_success) ... ok
+test_expected_role (test_lite.Lite.test_expected_role) ... ok
+test_expected_source_identity (test_lite.Lite.test_expected_source_identity) ... ok
+test_missing_evidence_marker_refused (test_lite.Lite.test_missing_evidence_marker_refused) ... ok
+test_network_failure_not_counted_as_iam_denial (test_lite.Lite.test_network_failure_not_counted_as_iam_denial) ... ok
+test_no_consent (test_lite.Lite.test_no_consent) ... ok
+test_profile_environment_cleared_and_restored (test_lite.Lite.test_profile_environment_cleared_and_restored) ... ok
+test_report_matching_allowlist_and_duplicates (test_lite.Lite.test_report_matching_allowlist_and_duplicates) ... ok
+test_same_key_result_bound_to_selected_archive (test_lite.Lite.test_same_key_result_bound_to_selected_archive) ... ok
+test_unexpected_permission_refused (test_lite.Lite.test_unexpected_permission_refused) ... ok
+test_wrong_recovery_role_refused (test_lite.Lite.test_wrong_recovery_role_refused) ... ok
+test_archive_corruption_detected (test_safevault.Lab.test_archive_corruption_detected) ... ok
+test_aws_checksum_mismatch_refused (test_safevault.Lab.test_aws_checksum_mismatch_refused) ... ok
+test_aws_get_pins_version (test_safevault.Lab.test_aws_get_pins_version) ... ok
+test_aws_missing_retention_refused (test_safevault.Lab.test_aws_missing_retention_refused) ... ok
+test_aws_nonversioned_upload_refused (test_safevault.Lab.test_aws_nonversioned_upload_refused) ... ok
+test_aws_retention_audit (test_safevault.Lab.test_aws_retention_audit) ... ok
+test_aws_upload_flags_and_checksum (test_safevault.Lab.test_aws_upload_flags_and_checksum) ... ok
+test_completion_upload_failure_not_published_as_success (test_safevault.Lab.test_completion_upload_failure_not_published_as_success) ... ok
+test_corrupted_source_can_restore_older_run (test_safevault.Lab.test_corrupted_source_can_restore_older_run) ... ok
+test_destination_not_overwritten (test_safevault.Lab.test_destination_not_overwritten) ... ok
+test_empty_source_refused (test_safevault.Lab.test_empty_source_refused) ... ok
+test_explicit_version_required (test_safevault.Lab.test_explicit_version_required) ... ok
+test_file_count_bound (test_safevault.Lab.test_file_count_bound) ... ok
+test_full_restore_and_empty_files_directories (test_safevault.Lab.test_full_restore_and_empty_files_directories) ... ok
+test_link_archive_refused_even_with_matching_archive_hash (test_safevault.Lab.test_link_archive_refused_even_with_matching_archive_hash) ... ok
+test_listing_records (test_safevault.Lab.test_listing_records) ... ok
+test_local_cannot_claim_retention (test_safevault.Lab.test_local_cannot_claim_retention) ... ok
+test_local_download_limit (test_safevault.Lab.test_local_download_limit) ... ok
+test_lock_excludes_overlap (test_safevault.Lab.test_lock_excludes_overlap) ... ok
+test_missing_requested_file (test_safevault.Lab.test_missing_requested_file) ... ok
+test_overlap_config_refused (test_safevault.Lab.test_overlap_config_refused) ... ok
+test_overlap_destination_refused (test_safevault.Lab.test_overlap_destination_refused) ... ok
+test_perfile_hash_mismatch_even_if_archive_hash_matches (test_safevault.Lab.test_perfile_hash_mismatch_even_if_archive_hash_matches) ... ok
+test_policy_generation_scoped (test_safevault.Lab.test_policy_generation_scoped) ... ok
+test_safe_relative_bad_paths (test_safevault.Lab.test_safe_relative_bad_paths) ... ok
+test_single_file (test_safevault.Lab.test_single_file) ... ok
+test_size_bound (test_safevault.Lab.test_size_bound) ... ok
+test_source_symlink_refused (test_safevault.Lab.test_source_symlink_refused) ... ok
+test_symlink_directory_refused (test_safevault.Lab.test_symlink_directory_refused) ... ok
+test_traversal_archive_refused_even_with_matching_archive_hash (test_safevault.Lab.test_traversal_archive_refused_even_with_matching_archive_hash) ... ok
+
+----------------------------------------------------------------------
+Ran 53 tests in 2.979s
+
+OK
+2026-10-08T11:44:21.802691+00:00 SKIPPED: previous backup still running (no overlap allowed).
