@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""OFFLINE REHEARSAL ONLY: a tiny stand-in for the AWS CLI used by tests/test_automation.py.
+
+It imitates the few S3/STS calls SafeVault makes, with the same permission boundaries as the
+real IAM policies (uploader can only upload; recovery user can only read backups and write the
+dashboard object). It proves the program logic, NOT that your real AWS account is configured.
+"""
+import base64, datetime as dt, hashlib, json, os, shutil, sys, uuid
+from pathlib import Path
+
+ROOT = Path(os.environ['FAKEAWS_ROOT'])
+ACCOUNT = '123456789012'
+BACKUP = 's3-bucket-fcc-project'
+DASH = 'safevault-dashboard-8b4c47'
+
+
+def fail(code, op, msg='Access Denied'):
+    sys.stderr.write('\nAn error occurred (%s) when calling the %s operation: %s\n' % (code, op, msg))
+    sys.exit(254)
+
+
+def opt(args, name, default=None):
+    return args[args.index(name) + 1] if name in args else default
+
+
+argv = sys.argv[1:]
+profile = opt(argv, '--profile', 'default')
+clean = []
+skip = {'--region', '--output', '--profile'}
+i = 0
+while i < len(argv):
+    if argv[i] in skip:
+        i += 2
+        continue
+    if argv[i] in ('--no-cli-pager', '--no-cli-auto-prompt'):
+        i += 1
+        continue
+    clean.append(argv[i]); i += 1
+service, op, rest = clean[0], clean[1], clean[2:]
+users = {'safevault-lite-uploader', 'safevault-lite-recovery'}
+if profile not in users:
+    fail('InvalidClientTokenId', 'GetCallerIdentity', 'The security token included in the request is invalid.')
+if service == 'sts' and op == 'get-caller-identity':
+    print(json.dumps({'Arn': 'arn:aws:iam::%s:user/%s' % (ACCOUNT, profile), 'Account': ACCOUNT, 'UserId': 'AIDAFAKE'}))
+    sys.exit(0)
+
+bucket = opt(rest, '--bucket'); key = opt(rest, '--key')
+OPS = {'put-object': 'PutObject', 'get-object': 'GetObject', 'head-object': 'HeadObject', 'delete-object': 'DeleteObject',
+       'get-object-retention': 'GetObjectRetention', 'put-object-retention': 'PutObjectRetention',
+       'list-object-versions': 'ListObjectVersions', 'get-bucket-versioning': 'GetBucketVersioning',
+       'get-object-lock-configuration': 'GetObjectLockConfiguration', 'get-bucket-encryption': 'GetBucketEncryption',
+       'get-public-access-block': 'GetPublicAccessBlock'}
+name = OPS[op]
+
+
+def allowed():
+    if profile == 'safevault-lite-uploader':
+        return bucket == BACKUP and op == 'put-object' and key.startswith('backups/source-01/')
+    if profile == 'safevault-lite-recovery':
+        if bucket == DASH:
+            return op == 'put-object' and key == 'dashboard-data.json'
+        return bucket == BACKUP and op in ('get-object', 'head-object', 'get-object-retention', 'get-bucket-versioning',
+                                           'get-object-lock-configuration', 'get-bucket-encryption', 'get-public-access-block')
+    return False
+
+
+if not allowed():
+    fail('AccessDenied', name)
+folder = ROOT / bucket / hashlib.sha256((key or '').encode()).hexdigest()
+if op == 'put-object':
+    body = Path(opt(rest, '--body')).read_bytes()
+    folder.mkdir(parents=True, exist_ok=True)
+    version = uuid.uuid4().hex if bucket == BACKUP else 'null'
+    (folder / (version + '.blob')).write_bytes(body)
+    until = (dt.datetime.now(dt.timezone.utc) + dt.timedelta(days=7)).strftime('%Y-%m-%dT%H:%M:%S.000Z')
+    (folder / (version + '.json')).write_text(json.dumps({'Mode': 'GOVERNANCE', 'RetainUntilDate': until}))
+    if bucket == DASH:
+        (ROOT / 'public').mkdir(exist_ok=True)
+        (ROOT / 'public' / key).write_bytes(body)
+    out = {'ETag': '"x"', 'VersionId': version}
+    if opt(rest, '--checksum-sha256'):
+        actual = base64.b64encode(hashlib.sha256(body).digest()).decode()
+        if actual != opt(rest, '--checksum-sha256'):
+            fail('BadDigest', name, 'checksum mismatch')
+        out['ChecksumSHA256'] = actual
+    print(json.dumps(out)); sys.exit(0)
+version = opt(rest, '--version-id')
+blob = folder / ((version or '') + '.blob')
+if op in ('get-object', 'head-object', 'get-object-retention') and not blob.exists():
+    fail('NoSuchVersion', name, 'The specified version does not exist.')
+if op == 'head-object':
+    print(json.dumps({'ContentLength': blob.stat().st_size, 'VersionId': version}))
+elif op == 'get-object':
+    shutil.copyfile(blob, rest[-1]); print(json.dumps({'VersionId': version, 'ContentLength': blob.stat().st_size}))
+elif op == 'get-object-retention':
+    print(json.dumps({'Retention': json.loads((folder / (version + '.json')).read_text())}))
+elif op == 'get-bucket-versioning':
+    print(json.dumps({'Status': 'Enabled'}))
+elif op == 'get-object-lock-configuration':
+    print(json.dumps({'ObjectLockConfiguration': {'ObjectLockEnabled': 'Enabled', 'Rule': {'DefaultRetention': {'Mode': 'GOVERNANCE', 'Days': 7}}}}))
+elif op == 'get-bucket-encryption':
+    print(json.dumps({'ServerSideEncryptionConfiguration': {'Rules': [{'ApplyServerSideEncryptionByDefault': {'SSEAlgorithm': 'AES256'}}]}}))
+elif op == 'get-public-access-block':
+    print(json.dumps({'PublicAccessBlockConfiguration': {'BlockPublicAcls': True, 'IgnorePublicAcls': True, 'BlockPublicPolicy': True, 'RestrictPublicBuckets': True}}))
