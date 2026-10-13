@@ -66,11 +66,9 @@ Safevault/
 ├── netlify/functions/chat.mjs + netlify.toml   chatbot proxy
 ├── scripts/install_cli.py  AWS CLI install helper
 ├── tests/                  53 offline tests + simulated AWS CLI (tests/fakeaws/aws)
-├── SETUP_TODAY.md          step-by-step setup
-├── PRESENTATION.md         demo running order
-├── docs/                   group explanation, validation, test output, original EC2 guide
-│   └── presentation/       presentation script and setup PDFs
-└── report/                 project report (.docx), architecture diagram and their generator scripts
+├── docs/SETUP.md           step-by-step AWS, cron and Netlify setup
+├── docs/offline-test-output.txt   output of the 53 offline tests
+└── report/                 project report (.docx) and architecture diagram
 ```
 
 ## Getting started
@@ -85,11 +83,11 @@ python3 lite.py schedule --every 5 --install
 python3 lite.py status
 ```
 
-Full setup steps are in [`SETUP_TODAY.md`](SETUP_TODAY.md) and the demo order is in [`PRESENTATION.md`](PRESENTATION.md).
+Full setup steps, including the IAM users, the dashboard and the chatbot, are in [`docs/SETUP.md`](docs/SETUP.md).
 
 ## Testing
 
-- 53 automated offline tests, including an end-to-end run against a simulated AWS CLI.
+- 53 automated offline tests, including an end-to-end run against a simulated AWS CLI ([output](docs/offline-test-output.txt)).
 - Real runs on our AWS account: protection verified, cloud restore matched 5/5 files by hash, ransomware drill passed.
 
 ## Honest scope
@@ -107,7 +105,3 @@ A tested prototype using **synthetic institutional data only**. Scheduling works
 - Detect suspicious file changes before backup
 - Restore on a separate clean VM with MFA
 - Multiple departments with separate dashboards
-
-## Team
-
-Cloud Computing group project led by Arnav Kale (4 members).
