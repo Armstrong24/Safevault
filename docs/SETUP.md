@@ -17,19 +17,7 @@ cd Safevault
 python3 -m unittest discover -s tests
 python3 lite.py local-demo      # first time only: creates synthetic data and the clean hash baseline
 ```
-Expected: `OK` (64 tests).
-
-## Step 1b: Create your login (1 min)
-
-```bash
-python3 lite.py create-user --username arnav     # first account is always admin; type the password twice
-python3 lite.py login --username arnav           # session lasts 30 minutes
-python3 lite.py whoami
-```
-Operating commands (`run-backup`, `cloud-restore`, `verify-protection`, `ransomware-drill`, `fetch`,
-`schedule`, `publish`) need an admin login. `status` and `categories` work for viewers too.
-To add a teammate who can only look: `python3 lite.py create-user --username priya --role viewer`.
-If a command says `ACCESS DENIED: Please log in first`, your 30 minutes are over: run `login` again.
+Expected: `OK` (60 tests).
 
 ## Step 2: Create ONE new IAM user (5 min, AWS Console)
 
@@ -124,11 +112,19 @@ Every file shows as `Suspicious (ransomware-style name)` with a warning.
 
 ## Step 7: Deploy the new dashboard + chatbot (10 to 15 min)
 
-1. Get a free API key at https://console.groq.com → API Keys.
-2. In **Netlify → your project → Project configuration → Environment variables → Add a variable**:
+1. **Dashboard login.** On your laptop (Windows or Ubuntu, any Python 3):
+   ```bash
+   python3 scripts/make_dashboard_user.py arnav      # type the password twice (hidden)
+   ```
+   It prints a `DASHBOARD_USERS` line and a `SESSION_SECRET`. In **Netlify → Project configuration →
+   Environment variables → Add a variable**, add both (scope **Functions**, mark them secret).
+   For more members, run the script for each and join the lines with `;` in one `DASHBOARD_USERS` value.
+   The password itself is never saved anywhere; only its salted hash is.
+2. Get a free API key at https://console.groq.com → API Keys.
+3. In the same **Environment variables** page, add
    key `GROQ_API_KEY`, value = your key, scope **Functions**, mark it secret.
    Never put the key in `index.html` or anywhere in the code.
-3. Deploy from Ubuntu. This needs Node 18 or newer. Check with `node -v`. If it's missing or old:
+4. Deploy from Ubuntu. This needs Node 18 or newer. Check with `node -v`. If it's missing or old:
    ```bash
    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt-get install -y nodejs
    ```
@@ -139,11 +135,10 @@ Every file shows as `Suspicious (ransomware-style name)` with a warning.
    npx netlify-cli@latest link             # choose your existing site dancing-gumdrop-8b4c47
    npx netlify-cli@latest deploy --prod    # publishes website/ + the chat function (netlify.toml)
    ```
-4. Open the site and click the chat button in the bottom-right corner. The header says **AI answers · Groq** once it works.
+5. Open the site, sign in, and click the chat button in the bottom-right corner. The header says **AI answers · Groq** once it works.
 
-**Short on time?** Drag the `website` folder onto your site's **Deploys** page in Netlify. The dashboard
-works, and the chatbot still answers from built-in SafeVault knowledge and your live results. Only the
-Groq AI mode needs the CLI deploy, because drag-and-drop doesn't deploy functions.
+**Use the CLI deploy, not drag-and-drop.** Drag-and-drop doesn't deploy functions, so the login (and the
+results behind it) would not work.
 
 ---
 
@@ -151,8 +146,9 @@ Groq AI mode needs the CLI deploy, because drag-and-drop doesn't deploy function
 
 | Message | Fix |
 |---|---|
-| `ACCESS DENIED: Please log in first` | Session expired (30 min). Run `python3 lite.py login`. |
-| `Account locked` | 3 wrong passwords. Wait 5 minutes, then log in again. |
+| Dashboard says `Login is not configured on the server yet` | Add `DASHBOARD_USERS` and `SESSION_SECRET` in Netlify (Step 7), then redeploy. |
+| Dashboard says `Login service not deployed` | You used drag-and-drop. Deploy with `npx netlify-cli@latest deploy --prod` so the functions go live. |
+| `Too many wrong passwords` | 5 wrong tries lock that user for 5 minutes. |
 | `Wrong AWS identity` | The profile name is wrong, or `aws configure` was run without `--profile`. |
 | `AccessDenied` on `run-backup` | Check the uploader inline policy and that the bucket allows checksum uploads. Never give it S3FullAccess. |
 | `DASHBOARD PUBLISH FAILED` | Check the recovery user policy and the dashboard bucket name. Your backup still succeeded and was recorded. |
