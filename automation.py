@@ -696,6 +696,19 @@ def status(args):
         installed = False
     say('Schedule')
     print('SafeVault cron line installed: ' + str(installed) + ' · cron process running: ' + str(cron_running()))
+    say('File categories (latest scan)')
+    if (state() / 'categories.json').exists():
+        cat = lite.read(state() / 'categories.json')
+        print(', '.join(x['label'] + ': ' + str(x['files']) for x in cat['summary']) + ' · warnings: ' + str(cat['warnings']))
+    else:
+        print('Not scanned yet. Run: python3 lite.py categories')
+    fetches = read_jsonl(state() / 'fetches.jsonl')
+    print(('Latest fetch: ' + fetches[-1]['outcome'] + ' (' + str(fetches[-1].get('category') or fetches[-1].get('file')) + ', ' +
+           str(fetches[-1]['files_matched']) + '/' + str(fetches[-1]['files_fetched']) + ' verified)') if fetches else 'No category fetch yet.')
+    import access
+    who = access.current()
+    say('Login')
+    print(('Logged in as ' + who['username'] + ' (' + who['role'] + ')') if who else 'Not logged in.')
     return 0
 
 
