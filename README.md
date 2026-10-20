@@ -18,7 +18,7 @@ Department data is often backed up by hand to pen drives or shared folders conne
 
 | Feature | Command | What it proves |
 |---|---|---|
-| User login (username + password) | `python3 lite.py create-user --username arnav`, `python3 lite.py login` | Only logged-in users can operate SafeVault; passwords stored as salted PBKDF2-SHA256 hashes; admin / viewer roles; lockout after 3 wrong passwords; 30-minute sessions |
+| Dashboard login (username + password) | Netlify Functions `login`, `data`, `chat` | The dashboard and chatbot open only after sign-in; the password is checked server-side against a salted PBKDF2-SHA256 hash; signed tokens expire after 60 minutes; 5 wrong passwords lock the user for 5 minutes |
 | File type identification | `python3 lite.py categories` | Every file is classified (records, documents, text, web, images, archives, binary, empty) by extension **and** content; mismatches and ransomware-style names are flagged |
 | Fetch by category | `python3 lite.py fetch --category records` (or `--file PATH`, `--list`) | Only that category is fetched from the clean S3 backup into a new folder and verified by hash |
 | Scheduled backups (cron on Ubuntu/WSL) | `python3 lite.py schedule --every 5 --install` | Run log with start, finish, outcome; no overlapping runs |
@@ -28,7 +28,7 @@ Department data is often backed up by hand to pen drives or shared folders conne
 | Safe ransomware drill | `python3 lite.py ransomware-drill` | A disposable copy is encrypted; the uploader key is denied read, list, delete and unlock; recovery is verified |
 | Status | `python3 lite.py status` | Summary of runs and checks in the terminal |
 | Publish results | automatic, or `python3 lite.py publish` | Sanitized `dashboard-data.json` for the dashboard (no file names, keys or private data) |
-| Dashboard + chatbot | `website/index.html`, `netlify/functions/chat.mjs` | Netlify page refreshing every 60 s; Groq chatbot behind a server-side function |
+| Dashboard + chatbot | `website/index.html`, `netlify/functions/` | Sign-in page, then results refreshing every 60 s; Groq chatbot behind a server-side function |
 
 ## Architecture
 
@@ -45,9 +45,9 @@ every command -> sanitized results -> public dashboard bucket (one JSON file)
 
 There is no conventional database. The dashboard is static HTML that reads one sanitized JSON file from S3. The only backend is the Netlify Function for the chatbot, and its API key lives in Netlify environment variables, never in the browser.
 
-## User login and file categories
+## Dashboard login and file categories
 
-**Login.** The first account is created with `create-user` and is always an `admin`. Passwords are never stored: only a salted PBKDF2-HMAC-SHA256 hash (310,000 iterations) in `~/.config/safevault-lite/users.json` (permissions 600). Three wrong passwords lock the account for 5 minutes, sessions expire after 30 minutes, and every attempt is written to an audit log. `admin` can run every command; `viewer` can only run `status` and `categories`. The unattended cron backup runs without a session because an admin installs the schedule. This login controls who may operate the tool; access to AWS is still enforced separately by IAM.
+**Dashboard login.** The dashboard shows a sign-in screen first. The `login` Netlify Function checks the username and password against `DASHBOARD_USERS`, a server-side environment variable that holds only salted PBKDF2-HMAC-SHA256 hashes (310,000 iterations), made with `python3 scripts/make_dashboard_user.py`. On success it returns a token signed with HMAC-SHA256 (`SESSION_SECRET`) that expires after 60 minutes. The `data` function returns the results and the `chat` function answers only when the token is valid. Five wrong passwords lock that user for 5 minutes. The browser never sees a password hash or the secret.
 
 **File categories.** `catalog.py` reads each file's extension and its first bytes (magic numbers such as `%PDF`, PNG, ZIP, GZIP) and whether it is readable text. The category is saved in the backup manifest for every file, so the cloud copy records what type of data it holds. After the ransomware drill, `categories --folder <drill folder>` flags every `.locked` file as suspicious.
 
@@ -59,7 +59,7 @@ There is no conventional database. The dashboard is static HTML that reads one s
 - **Integrity:** SHA-256 manifest for every file, checked again after restore.
 - **Encryption:** SSE-S3 at rest, HTTPS-only bucket policy in transit.
 - **Privacy:** the dashboard shows only sanitized results.
-- **Login:** salted password hashes, roles, lockout, expiring sessions and an audit log.
+- **Dashboard login:** server-side password check against salted hashes, signed expiring tokens, lockout.
 
 ## Tech stack
 
@@ -72,14 +72,15 @@ Safevault/
 ├── safevault.py            backup/restore engine: snapshot, SHA-256 manifest, versioned upload, safe extract
 ├── lite.py                 lab commands (entry point for all commands)
 ├── automation.py           scheduling, cloud restore, protection check, ransomware drill, dashboard publisher
-├── access.py               user login: password hashing, roles, lockout, sessions, audit log
 ├── catalog.py              file type / category detection and fetch by category
 ├── website/index.html      dashboard
-├── netlify/functions/chat.mjs + netlify.toml   chatbot proxy
+├── netlify/functions/      login.mjs, data.mjs, chat.mjs (dashboard login, results, chatbot)
+├── netlify/lib/auth.mjs    password hash check and signed tokens
+├── scripts/make_dashboard_user.py   makes a hashed dashboard login for Netlify
 ├── scripts/install_cli.py  AWS CLI install helper
-├── tests/                  64 offline tests + simulated AWS CLI (tests/fakeaws/aws)
+├── tests/                  60 offline tests + simulated AWS CLI (tests/fakeaws/aws)
 ├── docs/SETUP.md           step-by-step AWS, cron and Netlify setup
-├── docs/offline-test-output.txt   output of the 64 offline tests
+├── docs/offline-test-output.txt   output of the 60 offline tests
 └── report/                 project report (.docx) and architecture diagram
 ```
 
@@ -89,9 +90,7 @@ Safevault/
 # Ubuntu / WSL, Python 3 and AWS CLI configured with the SafeVault IAM users
 git clone https://github.com/Armstrong24/Safevault.git
 cd Safevault
-python3 -m unittest discover -s tests     # 64 offline tests, no AWS needed
-python3 lite.py create-user --username arnav   # first account = admin
-python3 lite.py login
+python3 -m unittest discover -s tests     # 60 offline tests, no AWS needed
 sudo service cron start
 python3 lite.py schedule --every 5 --install
 python3 lite.py status
@@ -101,7 +100,7 @@ Full setup steps, including the IAM users, the dashboard and the chatbot, are in
 
 ## Testing
 
-- 64 automated offline tests, including an end-to-end run against a simulated AWS CLI ([output](docs/offline-test-output.txt)).
+- 60 automated offline tests, including an end-to-end run against a simulated AWS CLI ([output](docs/offline-test-output.txt)).
 - Real runs on our AWS account: protection verified, cloud restore matched 5/5 files by hash, ransomware drill passed.
 
 ## Honest scope
