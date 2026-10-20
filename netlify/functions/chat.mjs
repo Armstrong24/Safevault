@@ -1,6 +1,8 @@
 // SafeVault assistant: a tiny server-side proxy so the Groq API key NEVER reaches the browser.
 // Set GROQ_API_KEY in Netlify: Project configuration -> Environment variables (scope: Functions).
 // Optional: GROQ_MODEL (default openai/gpt-oss-20b).
+// The assistant answers only for logged-in dashboard users (token from the login function).
+import { userFromRequest } from '../lib/auth.mjs';
 
 const DATA_URL = 'https://safevault-dashboard-8b4c47.s3.ap-south-1.amazonaws.com/dashboard-data.json';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -22,6 +24,8 @@ Architecture
 - Ransomware drill (no malware): copy the data to a disposable folder, scramble/rename files to .locked, try with the uploader key to read, list, delete (a disposable canary version) and shorten retention -> all AccessDenied; then restore the clean backup from S3 and verify.
 - Results publisher: builds sanitized dashboard-data.json only from real execution records (no keys, VersionIds, account IDs or records) and uploads it to a separate public S3 bucket. The Netlify dashboard fetches it over HTTPS (CORS restricted to the site) and polls every 60 s (periodic refresh, not streaming).
 - This chatbot runs as a Netlify Function calling Groq; the API key is a server-side environment variable.
+- Dashboard login: the dashboard and this chatbot open only after a username and password login. A Netlify Function checks the password against a salted PBKDF2-SHA256 hash (310,000 rounds) kept in a server-side environment variable, then issues an HMAC-signed token that expires after 60 minutes. 5 wrong passwords lock the user for 5 minutes. Passwords are never stored in plain text.
+- File categories: lite.py categories identifies each file's type from its extension and its first bytes (magic numbers), e.g. records (CSV), web, text, binary, empty, and flags mismatches or ransomware-style names like .locked. lite.py fetch --category records restores only that category from the clean S3 backup and verifies it by hash.
 
 Why it matters: ransomware often encrypts files AND deletes backups. Versioning + Object Lock keep older clean versions; least-privilege IAM stops the compromised machine from deleting them; verified restores prove the backup is usable.
 
@@ -48,9 +52,12 @@ async function liveSummary() {
 export default async (req, context) => {
   const origin = req.headers.get('origin') || '';
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Content-Type' } });
+    'Access-Control-Allow-Origin': ALLOWED_ORIGIN, 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Content-Type, Authorization' } });
   if (req.method !== 'POST') return json(405, { error: 'POST only' }, origin);
   if (origin && origin !== ALLOWED_ORIGIN && !origin.endsWith('--dancing-gumdrop-8b4c47.netlify.app')) return json(403, { error: 'Origin not allowed' }, origin);
+  let user = null;
+  try { user = userFromRequest(req); } catch { return json(503, { error: 'Login is not configured on the server yet.' }, origin); }
+  if (!user) return json(401, { error: 'Please log in.' }, origin);
   const key = process.env.GROQ_API_KEY;
   if (!key) return json(503, { error: 'Assistant not configured' }, origin);
 
