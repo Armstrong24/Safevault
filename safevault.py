@@ -20,6 +20,8 @@ import tempfile
 import time
 import uuid
 
+import catalog  # file type / category detection (catalog.py)
+
 VERSION = '1.0.0'
 MAX_RECORD = 2 * 1024 * 1024
 MAX_MANIFEST = 16 * 1024 * 1024
@@ -270,7 +272,8 @@ def snapshot(c, stage):
             total += target.stat().st_size
             if total > c['max_source_bytes']:
                 raise VaultError('Source grew beyond safety limit')
-            files.append({'path': rel, 'size': target.stat().st_size, 'sha256': digest(target)})
+            files.append({'path': rel, 'size': target.stat().st_size, 'sha256': digest(target),
+                          'category': catalog.classify(target)['category']})
     if not files:
         raise VaultError('Empty source refused: investigate accidental deletion before backing up')
     return files, directories, total
@@ -362,8 +365,14 @@ def restore(c, record_key, record_version, destination, selected=None, cloud=Non
         raise VaultError('Select a completion record within configured source prefix')
     if not record_version or record_version == 'null':
         raise VaultError('Explicit completion VersionId required')
-    if selected:
+    # selected: None = every file, a path string = one file, a function(entry) -> bool = a category
+    if isinstance(selected, str):
         safe_relative(selected)
+        wanted = lambda entry, name=selected: entry['path'] == name
+    elif callable(selected):
+        wanted = selected
+    else:
+        wanted = None
     dest = Path(destination).expanduser().absolute()
     if dest.exists() or dest.is_symlink():
         raise VaultError('Destination already exists; choose a new empty destination path')
@@ -425,15 +434,17 @@ def restore(c, record_key, record_version, destination, selected=None, cloud=Non
             allowed = {'manifest.json'} | {'data/' + p for p in expected_files} | {'data/' + p for p in expected_dirs}
             if names != allowed:
                 raise VaultError('Archive has missing or undeclared entries')
-            if selected and selected not in expected_files:
+            if isinstance(selected, str) and selected not in expected_files:
                 raise VaultError('Requested file is absent from selected backup')
             # Validate every file even for single-file restore; do not extract arbitrary tar entries.
+            written = 0
             for rel, entry in expected_files.items():
                 m = by_name['data/' + rel]
                 if not m.isfile() or m.size != entry['size']:
                     raise VaultError('Archive/manifest entry mismatch')
                 target = output / rel
-                write_it = not selected or rel == selected
+                write_it = wanted is None or bool(wanted(entry))
+                written += 1 if write_it else 0
                 if write_it:
                     target.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
                 h = hashlib.sha256()
@@ -450,15 +461,15 @@ def restore(c, record_key, record_version, destination, selected=None, cloud=Non
             for rel in expected_dirs:
                 if not by_name['data/' + rel].isdir():
                     raise VaultError('Declared directory is not a directory')
-                if not selected:
+                if wanted is None:
                     (output / rel).mkdir(parents=True, exist_ok=True, mode=0o700)
         # Dedicated unprivileged operator and private parent required; refuse rather than merge.
         if dest.exists() or dest.is_symlink():
             raise VaultError('Destination appeared during restore; refusing overwrite')
         os.rename(output, dest)
     result = {'run_id': r['run_id'], 'record_key': record_key, 'record_version_id': record_version,
-              'destination': str(dest), 'restored_files': 1 if selected else r['file_count'],
-              'validated_files': r['file_count'], 'selected_file': selected,
+              'destination': str(dest), 'restored_files': written,
+              'validated_files': r['file_count'], 'selected_file': selected if isinstance(selected, str) else None,
               'data_cutoff_utc': r['data_cutoff_utc'], 'verified_utc': utc(),
               'restore_seconds': time.monotonic() - start,
               'scope': 'download/extract/verify; excludes EC2 provisioning and application readiness',
@@ -466,6 +477,8 @@ def restore(c, record_key, record_version, destination, selected=None, cloud=Non
     audit = Path(c['state_directory']) / 'restore-reports' / (uuid.uuid4().hex + '.json')
     save_json(audit, result)
     log(c, 'restore_verified', **result)
+    result['catalog'] = [{'path': e['path'], 'size': e['size'], 'category': e.get('category')}
+                         for e in expected_files.values()]
     return result
 
 def audit_retention(c, record_key, record_version, cloud=None):
