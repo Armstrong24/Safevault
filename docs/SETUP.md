@@ -17,7 +17,19 @@ cd Safevault
 python3 -m unittest discover -s tests
 python3 lite.py local-demo      # first time only: creates synthetic data and the clean hash baseline
 ```
-Expected: `OK` (53 tests).
+Expected: `OK` (64 tests).
+
+## Step 1b: Create your login (1 min)
+
+```bash
+python3 lite.py create-user --username arnav     # first account is always admin; type the password twice
+python3 lite.py login --username arnav           # session lasts 30 minutes
+python3 lite.py whoami
+```
+Operating commands (`run-backup`, `cloud-restore`, `verify-protection`, `ransomware-drill`, `fetch`,
+`schedule`, `publish`) need an admin login. `status` and `categories` work for viewers too.
+To add a teammate who can only look: `python3 lite.py create-user --username priya --role viewer`.
+If a command says `ACCESS DENIED: Please log in first`, your 30 minutes are over: run `login` again.
 
 ## Step 2: Create ONE new IAM user (5 min, AWS Console)
 
@@ -67,6 +79,16 @@ Open https://dancing-gumdrop-8b4c47.netlify.app. You'll see the real results onc
 
 If `verify-protection` says Object Lock is not enabled, your bucket was created without it. Either note this, or create a new bucket with Object Lock and change `BUCKET` in `lite.py`.
 
+## Step 4b: File categories and fetch by category (2 min)
+
+```bash
+python3 lite.py categories                     # 5 files in 5 categories · no type mismatches
+python3 lite.py fetch --list                   # what the clean S3 backup holds, by category
+python3 lite.py fetch --category records       # FETCH PASSED: 1/1 Records / spreadsheets
+python3 lite.py fetch --file sample.bin        # one file
+```
+Categories: `records`, `documents`, `text`, `web`, `images`, `archives`, `binary`, `empty`, `suspicious`.
+
 ## Step 5: Turn on automatic backups (3 min + 10 min waiting)
 
 ```bash
@@ -94,6 +116,11 @@ python3 lite.py ransomware-drill      # type DRILL
 It scrambles a **disposable copy** (no malware) and tries to read, list, delete and unlock backups with the
 uploader key. All four must say `AccessDenied`. Then it restores the clean backup from S3 and verifies 5/5 files.
 Your real source folder and your cloud backups are not modified.
+To show the attack being detected, scan the scrambled copy (the drill prints its folder):
+```bash
+python3 lite.py categories --folder ~/safevault-lite-lab/drill-*/department-share
+```
+Every file shows as `Suspicious (ransomware-style name)` with a warning.
 
 ## Step 7: Deploy the new dashboard + chatbot (10 to 15 min)
 
@@ -124,6 +151,8 @@ Groq AI mode needs the CLI deploy, because drag-and-drop doesn't deploy function
 
 | Message | Fix |
 |---|---|
+| `ACCESS DENIED: Please log in first` | Session expired (30 min). Run `python3 lite.py login`. |
+| `Account locked` | 3 wrong passwords. Wait 5 minutes, then log in again. |
 | `Wrong AWS identity` | The profile name is wrong, or `aws configure` was run without `--profile`. |
 | `AccessDenied` on `run-backup` | Check the uploader inline policy and that the bucket allows checksum uploads. Never give it S3FullAccess. |
 | `DASHBOARD PUBLISH FAILED` | Check the recovery user policy and the dashboard bucket name. Your backup still succeeded and was recorded. |
