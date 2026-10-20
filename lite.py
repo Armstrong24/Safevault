@@ -279,18 +279,14 @@ def main():
     p=subs.add_parser('configure-source');p.add_argument('--monitoring',action='store_true')
     p=subs.add_parser('recover');p.add_argument('--handoff',default=str(HOME/'handoff.json'));p.add_argument('--file')
     p=subs.add_parser('dashboard');p.add_argument('--reports',nargs='*',default=[])
-    import automation,catalog,access;automation.register(subs);catalog.register(subs);access.register(subs)
+    import automation,catalog;automation.register(subs);catalog.register(subs)
     args=parser.parse_args();os.umask(0o077)
     if sys.platform!='linux':parser.error('Run inside Ubuntu, not PowerShell.')
     if sys.version_info<(3,10):parser.error('Python 3.10+ required.')
     try:
-        who=access.require(args.command,args)  # login + role check (access.py)
-        if who:print('['+who['username']+' ('+who['role']+')]')
         fn=getattr(args,'func',None) or globals()[args.command.replace('-','_')]
         rc=fn(args)
         if rc:return rc
-    except access.AccessError as e:
-        print('ACCESS DENIED: '+str(e),file=sys.stderr);return 3
     except (LabError,sv.VaultError,OSError,ValueError,KeyError,subprocess.CalledProcessError) as e:
         print('STOPPED: '+str(e)+'\nDo not claim this step passed. Share the sanitized error.',file=sys.stderr);return 1
     except KeyboardInterrupt:print('Interrupted. Inspect AWS resources and any temporary test identities.',file=sys.stderr);return 130
