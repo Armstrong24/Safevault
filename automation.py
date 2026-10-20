@@ -705,10 +705,6 @@ def status(args):
     fetches = read_jsonl(state() / 'fetches.jsonl')
     print(('Latest fetch: ' + fetches[-1]['outcome'] + ' (' + str(fetches[-1].get('category') or fetches[-1].get('file')) + ', ' +
            str(fetches[-1]['files_matched']) + '/' + str(fetches[-1]['files_fetched']) + ' verified)') if fetches else 'No category fetch yet.')
-    import access
-    who = access.current()
-    say('Login')
-    print(('Logged in as ' + who['username'] + ' (' + who['role'] + ')') if who else 'Not logged in.')
     return 0
 
 
