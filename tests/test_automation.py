@@ -74,18 +74,36 @@ class EndToEndSimulatedAWS(unittest.TestCase):
             for k in lite.CREDENTIAL_ENV:
                 env.pop(k, None)
 
-            def run(*a, ok=True):
-                p = subprocess.run([sys.executable, str(ROOT / 'lite.py'), *a], env=env, capture_output=True, text=True, timeout=120)
+            def run(*a, ok=True, stdin=''):
+                p = subprocess.run([sys.executable, str(ROOT / 'lite.py'), *a], env=env, input=stdin, capture_output=True, text=True, timeout=120)
                 if ok:
                     self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
                 return p
             run('local-demo'); run('policies'); run('configure-source')
+            # login is required before operating SafeVault
+            self.assertEqual(run('run-backup', ok=False).returncode, 3)
+            run('create-user', '--username', 'arnav', stdin='Vault2026x\nVault2026x\n')
+            self.assertEqual(run('cloud-restore', ok=False).returncode, 3)
+            self.assertEqual(run('login', '--username', 'arnav', stdin='wrong-pass1\n', ok=False).returncode, 3)
+            self.assertIn('LOGIN SUCCESSFUL', run('login', '--username', 'arnav', stdin='Vault2026x\n').stdout)
             self.assertIn('BACKUP SUCCEEDED', run('run-backup').stdout)
             run('run-backup', '--trigger', 'scheduled'); run('run-backup', '--trigger', 'scheduled')
             self.assertIn('PROTECTION VERIFIED', run('verify-protection').stdout)
             self.assertIn('RECOVERY PASSED from S3: 5/5', run('cloud-restore').stdout)
             out = run('ransomware-drill', '--yes').stdout
             self.assertIn('AccessDenied', out); self.assertIn('DRILL PASSED', out)
+            # file categories + fetch by category from the S3 backup
+            out = run('categories').stdout
+            self.assertIn('5 files in 5 categories', out); self.assertIn('no type mismatches', out)
+            self.assertIn('FETCH PASSED: 1/1 Records', run('fetch', '--category', 'records').stdout)
+            self.assertIn('Web pages', run('fetch', '--list').stdout)
+            self.assertIn('FETCH PASSED: 1/1 file', run('fetch', '--file', 'sample.bin').stdout)
+            # a viewer may look but not operate
+            run('create-user', '--username', 'priya', '--role', 'viewer', stdin='Look2026y\nLook2026y\n')
+            run('logout'); run('login', '--username', 'priya', stdin='Look2026y\n')
+            self.assertIn('Logged in as priya (viewer)', run('status').stdout)
+            self.assertIn('Admin only', run('fetch', '--category', 'records', ok=False).stderr)
+            run('logout'); run('login', '--username', 'arnav', stdin='Vault2026x\n')
             data = json.loads((pathlib.Path(store) / 'public' / 'dashboard-data.json').read_text())
             self.assertEqual(data['data_mode'], 'measured')
             self.assertGreaterEqual(data['backup']['scheduled_successes'], 2)
