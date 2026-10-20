@@ -111,13 +111,32 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;color:
 #chat input{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--txt);outline:none}#chat input:focus{border-color:var(--acc)}
 #chat form button{padding:10px 16px;border-radius:12px;cursor:pointer}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+:root{--red:var(--bad);--green:var(--good)}
+body.locked header,body.locked main,body.locked #chat-btn,body.locked #chat{display:none!important}
+#login{display:none;min-height:100vh;align-items:center;justify-content:center;padding:24px}body.locked #login{display:flex}
+.login-card{width:min(400px,100%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:30px 28px;box-shadow:var(--shadow)}
+.login-card .logo{width:46px;height:46px;margin-bottom:14px}.login-card h1{font-size:26px;margin:0 0 4px}.login-card p{color:var(--mut);font-size:13.5px;margin:0 0 20px}
+.login-card label{display:block;font-size:12px;letter-spacing:.6px;text-transform:uppercase;color:var(--mut);margin:12px 0 6px}
+.login-card input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--txt);outline:none}.login-card input:focus{border-color:var(--acc)}
+.login-card button{width:100%;margin-top:20px;padding:12px;border-radius:12px;cursor:pointer}
+#login-err{min-height:20px;margin-top:12px;color:var(--bad);font-size:13px}
+.login-card small{display:block;color:var(--mut);font-size:11.5px;margin-top:10px;line-height:1.45}
+#who{color:var(--mut);font-size:12.5px;margin-left:4px}#logout{background:none;border:1px solid var(--line);color:var(--mut);padding:7px 14px;border-radius:999px;cursor:pointer}#logout:hover{color:var(--txt);border-color:var(--bad)}
 @media(max-width:1000px){.hero{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.grid4{grid-template-columns:repeat(2,1fr)}.flow{grid-template-columns:repeat(2,1fr)}.flow>div::after{display:none}.steps,.defs{grid-template-columns:1fr}.arrow{display:none}}
 @media(max-width:560px){header{padding:12px 16px;flex-wrap:wrap}.grid4{grid-template-columns:1fr}h1{font-size:30px}.theme-control span{display:none}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head>
-<body>
+<body class="locked">
+<section id="login" aria-label="Sign in"><form class="login-card" id="login-form" autocomplete="on">
+<span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3.5v6c0 5-3.4 8.8-8 10.5C7.4 20.3 4 16.5 4 11.5v-6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span>
+<h1>SafeVault</h1><p>Sign in to view backup, recovery and ransomware-drill results.</p>
+<label for="lg-user">Username</label><input id="lg-user" name="username" autocomplete="username" required maxlength="64">
+<label for="lg-pass">Password</label><input id="lg-pass" name="password" type="password" autocomplete="current-password" required maxlength="256">
+<button class="primary" type="submit" id="lg-btn">Sign in</button><div id="login-err" role="alert"></div>
+<small>Your password is checked on the server against a salted PBKDF2-SHA256 hash. The session ends after 60 minutes.</small>
+</form></section>
 <header><div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3.5v6c0 5-3.4 8.8-8 10.5C7.4 20.3 4 16.5 4 11.5v-6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span><div><strong>SafeVault</strong><small>Ransomware-resilient cloud backup</small></div></div>
-<nav><button class="tab active" data-tab="dash">Dashboard</button><button class="tab" data-tab="how">How it works</button><label class="theme-control" for="theme"><span>Theme</span><select id="theme" aria-label="Color mode"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label></nav></header>
+<nav><button class="tab active" data-tab="dash">Dashboard</button><button class="tab" data-tab="how">How it works</button><label class="theme-control" for="theme"><span>Theme</span><select id="theme" aria-label="Color mode"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label><span id="who"></span><button id="logout" type="button">Log out</button></nav></header>
 <main>
 <section id="dash" class="page active">
 <div class="hero"><div><div class="eyebrow"><span>Cloud Computing project · Amazon S3 · Mumbai (ap-south-1)</span><span id="mode" class="mode demo">NO DATA</span></div>
@@ -193,7 +212,7 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;color:
 <div><code>run-backup</code><span>one backup</span></div><div><code>schedule --install</code><span>automatic backups</span></div><div><code>verify-protection</code><span>read bucket settings</span></div><div><code>cloud-restore</code><span>verified recovery</span></div><div><code>ransomware-drill</code><span>safe attack demo</span></div><div><code>status</code><span>summary</span></div>
 </div></section></div>
 </section>
-<footer><span>Read-only page · no AWS keys, archives, object versions or institutional records are published</span><span id="foot-mode">—</span></footer></main>
+<footer><span>Signed-in, read-only page · no AWS keys, archives, object versions or institutional records are published</span><span id="foot-mode">—</span></footer></main>
 <button id="chat-btn" aria-label="Ask SafeVault assistant" aria-expanded="false">💬</button>
 <section id="chat" aria-label="SafeVault assistant"><div class="ch"><div><strong>Ask SafeVault</strong><small id="chat-mode">Built-in answers</small></div><button id="chat-x" aria-label="Close">✕</button></div>
 <div id="msgs" aria-live="polite"></div>
@@ -203,8 +222,13 @@ footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;color:
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
-const CLOUD_URL='https://safevault-dashboard-8b4c47.s3.ap-south-1.amazonaws.com/dashboard-data.json';
-const LIVE_HOST='dancing-gumdrop-8b4c47.netlify.app';
+const DATA_URL='/.netlify/functions/data',LOGIN_URL='/.netlify/functions/login';
+// ---------------- login (token from the server, kept only for this browser tab)
+let session=null;try{session=JSON.parse(sessionStorage.getItem('sv_session')||'null')}catch(e){}
+const authed=()=>session&&session.token&&new Date(session.expires)>new Date();
+const authHeader=()=>authed()?{'Authorization':'Bearer '+session.token}:{};
+function lock(msg){session=null;sessionStorage.removeItem('sv_session');clearInterval(timer);timer=null;document.body.classList.add('locked');$('login-err').textContent=msg||'';$('lg-pass').value='';setTimeout(()=>$('lg-user').focus(),50)}
+function unlock(){document.body.classList.remove('locked');$('who').textContent='Signed in as '+session.username;$('auto').checked=true;clearInterval(timer);timer=setInterval(refreshCloud,60000);refreshCloud()}
 let real=JSON.parse($('evidence').textContent),sampleMode=false,source='embedded',lastFetch=null,fetchError=null,timer=null;
 const put=(id,v)=>{$(id).textContent=v};
 const when=v=>{const d=new Date(v);return v&&!isNaN(d)?d.toLocaleString(undefined,{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—'};
@@ -268,16 +292,25 @@ function render(s){
  banner.className=cls;put('banner',msg);
 }
 function samples(){const t=n=>new Date(Date.now()-n*60000).toISOString();return{schema:1,kind:'results',data_mode:'demo',generated_utc:t(1),uploads:[{data_cutoff_utc:t(40),archive_bytes:263740,file_count:5,type:'Clean'},{data_cutoff_utc:t(5),archive_bytes:263742,file_count:5,type:'Scheduled'}],recoveries:[{verified_utc:t(20),files:5,restore_seconds:2.4,baseline_matched:true,csv_usable:true},{verified_utc:t(3),files:5,restore_seconds:2.1,baseline_matched:true,csv_usable:true,context:'ransomware-drill'}],checks:{scheduled_runs:true,cloud_recovery:true,retention_metadata:true,protection_verified:true,iam_denials:true,drill_passed:true},backup:{last_attempt_utc:t(5),last_attempt_outcome:'success',last_attempt_trigger:'scheduled',last_success_utc:t(5),last_success_archive_bytes:263742,last_success_file_count:5,total_attempts:4,total_successes:4,total_failures:0,scheduled_successes:3},runs:[0,5,10,15].map(n=>({started_utc:t(5+n),trigger:n===15?'manual':'scheduled',outcome:'success',archive_bytes:263742,duration_seconds:1.9,matches_clean_baseline:true})),recovery:{status:'passed',attempted_utc:t(3),files_matched:5,files_expected:5},protection:{checked_utc:t(30),versioning:'Enabled',object_lock:'Enabled',default_retention:'GOVERNANCE 7 days',encryption:'SSE-S3 (AES-256)',public_access_blocked:true,all_ok:true,clean_backup_retention:[{object:'archive',mode:'GOVERNANCE',retain_until:new Date(Date.now()+6.9*864e5).toISOString()}]},drill:{finished_utc:t(3),outcome:'passed',files_encrypted:5,readable_after_attack:0,attacker_attempts:{a:'denied',b:'denied',c:'denied',d:'denied'},files_matched:5,files_expected:5,time_to_recover_seconds:3.2}}}
-async function refreshCloud(){if(location.hostname!==LIVE_HOST){fetchError=null;$('banner').className='banner';put('banner','Open the deployed Netlify page to connect to S3. Demonstration and file import work here.');return}
+async function refreshCloud(){if(!authed()){lock('Session ended. Please sign in again.');return}
  const btn=$('cloud');btn.disabled=true;put('cloud','Connecting…');const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),12000);
- try{const r=await fetch(CLOUD_URL,{cache:'no-store',credentials:'omit',signal:ctl.signal});if(!r.ok)throw Error('S3 returned HTTP '+r.status+'.');const text=await r.text();if(text.length>1048576)throw Error('Data exceeds 1 MiB.');const v=validate(JSON.parse(text));if(!['demo','measured'].includes(v.data_mode))throw Error('data_mode must be demo or measured.');real=v;source='cloud';lastFetch=new Date().toISOString();fetchError=null}
+ try{const r=await fetch(DATA_URL,{cache:'no-store',headers:authHeader(),signal:ctl.signal});if(r.status===401){lock('Session ended. Please sign in again.');return}if(!r.ok){let m='HTTP '+r.status;try{m=(await r.json()).error||m}catch(e){}throw Error(m+'.')}const text=await r.text();if(text.length>1048576)throw Error('Data exceeds 1 MiB.');const v=validate(JSON.parse(text));if(!['demo','measured'].includes(v.data_mode))throw Error('data_mode must be demo or measured.');real=v;source='cloud';lastFetch=new Date().toISOString();fetchError=null}
  catch(e){fetchError=e.name==='AbortError'?'Request timed out.':e.message}
  finally{clearTimeout(tm);btn.disabled=false;put('cloud','Refresh from S3');if(!sampleMode)render(real)}}
 $('cloud').onclick=refreshCloud;
 $('auto').onchange=()=>{clearInterval(timer);timer=$('auto').checked?setInterval(refreshCloud,60000):null};
 $('sample').onclick=()=>{sampleMode=!sampleMode;$('sample').setAttribute('aria-pressed',String(sampleMode));put('sample',sampleMode?'Return to dashboard':'View demonstration');render(sampleMode?samples():real)};
 const theme=$('theme');function setTheme(v){document.documentElement.dataset.theme=v==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):v;theme.value=v}theme.onchange=()=>setTheme(theme.value);setTheme('dark');matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(theme.value==='system')setTheme('system')});
-render(real);if(location.hostname===LIVE_HOST){$('auto').checked=true;timer=setInterval(refreshCloud,60000);refreshCloud()}
+render(real);
+$('login-form').onsubmit=async e=>{e.preventDefault();const btn=$('lg-btn');btn.disabled=true;btn.textContent='Signing in…';$('login-err').textContent='';
+ try{const r=await fetch(LOGIN_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('lg-user').value,password:$('lg-pass').value})});
+  let j={};try{j=await r.json()}catch(e){}
+  if(!r.ok||!j.token)throw Error(j.error||(r.status===404?'Login service not deployed. Deploy with the Netlify CLI.':'Sign-in failed (HTTP '+r.status+').'));
+  session={token:j.token,username:j.username,expires:j.expires};sessionStorage.setItem('sv_session',JSON.stringify(session));$('lg-pass').value='';unlock()}
+ catch(err){$('login-err').textContent=err.message;$('lg-pass').value='';$('lg-pass').focus()}
+ finally{btn.disabled=false;btn.textContent='Sign in'}};
+$('logout').onclick=()=>lock('You have logged out.');
+if(authed())unlock();else lock();
 setInterval(()=>{if(!sampleMode&&real.generated_utc)put('fresh',ago(real.generated_utc))},15000);
 
 // ---------------- SafeVault assistant (Groq via Netlify Function; built-in answers as fallback)
@@ -293,6 +326,8 @@ const KB=[
  [/encrypt|sse|https|tls|public/,'Backups use SSE-S3 encryption at rest, the bucket policy denies non-HTTPS requests, and all public access is blocked. Only this dashboard’s JSON file lives in a separate public bucket, and it contains no keys, version IDs or records.'],
  [/limit|weak|proof|production|guarantee/,'Limitations: synthetic static files only, scheduling depends on the laptop being on, Governance can be bypassed by an authorised admin, and recovery runs on the same laptop. It is a tested ransomware-resilient prototype under this threat model, not ransomware-proof.'],
  [/architecture|how.*work|flow|component|stack|aws service/,'Flow: cron → Python backup engine → AWS CLI with the upload-only user → private S3 bucket (Versioning, Object Lock, SSE-S3). Recovery: read-only user downloads the selected versions → verify → restore. Results: sanitized JSON → public S3 object → this Netlify page.'],
+ [/login|password|sign in|log in|authenticat/,'The dashboard opens only after you sign in. A Netlify Function checks the password on the server against a salted PBKDF2-SHA256 hash (310,000 rounds), then gives the browser a signed token that expires after 60 minutes. 5 wrong passwords lock the user for 5 minutes. Passwords are never stored in plain text.'],
+ [/categor|file type|fetch/,'lite.py categories identifies each file type from its extension and first bytes (magic numbers): records (CSV), web, text, binary, empty and more, and flags ransomware-style names like .locked. lite.py fetch --category records restores only that category from the clean S3 backup and checks it by hash.'],
  [/team|member|who/,'SafeVault is a four-member Cloud Computing group project.'],
 ];
 function liveAnswer(q){const s=real||{},b=s.backup||{},r=s.recovery||{},d=s.drill,p=s.protection;
@@ -304,7 +339,7 @@ function liveAnswer(q){const s=real||{},b=s.backup||{},r=s.recovery||{},d=s.dril
 function localAnswer(q){q=q.toLowerCase();const live=liveAnswer(q);if(live)return live;for(const [re,a] of KB)if(re.test(q))return a;return 'I can answer about SafeVault’s backups, Object Lock, IAM users, scheduling, the ransomware drill, recovery checks and the latest results. Try “Did recovery pass?”'}
 function bubble(text,who){const m=document.createElement('div');m.className='m '+who;m.textContent=text;$('msgs').append(m);$('msgs').scrollTop=1e9;return m}
 async function ask(q){q=q.trim().slice(0,500);if(!q)return;bubble(q,'u');const wait=bubble('…','b');let answer=null;
- if(aiAvailable!==false){try{const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),15000);const r=await fetch(CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q,history:chatHistory.slice(-6)}),signal:ctl.signal});clearTimeout(t);if(r.ok){const j=await r.json();if(j&&typeof j.answer==='string'&&j.answer.trim()){answer=j.answer.trim();aiAvailable=true;put('chat-mode','AI answers · Groq')}}else if(r.status===404||r.status===503){aiAvailable=false}}catch(e){}}
+ if(aiAvailable!==false){try{const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),15000);const r=await fetch(CHAT_URL,{method:'POST',headers:{'Content-Type':'application/json',...authHeader()},body:JSON.stringify({question:q,history:chatHistory.slice(-6)}),signal:ctl.signal});clearTimeout(t);if(r.status===401){wait.remove();lock('Session ended. Please sign in again.');return}if(r.ok){const j=await r.json();if(j&&typeof j.answer==='string'&&j.answer.trim()){answer=j.answer.trim();aiAvailable=true;put('chat-mode','AI answers · Groq')}}else if(r.status===404||r.status===503){aiAvailable=false}}catch(e){}}
  if(!answer){answer=localAnswer(q);if(aiAvailable===false)put('chat-mode','Built-in answers')}
  wait.textContent=answer;chatHistory.push({role:'user',content:q},{role:'assistant',content:answer});}
 $('chat-btn').onclick=()=>{const o=$('chat').classList.toggle('open');$('chat-btn').setAttribute('aria-expanded',String(o));if(o&&!$('msgs').children.length)bubble('Hi! Ask me anything about SafeVault: how it works, or the latest backup and recovery results.','b');if(o)$('chat-in').focus()};
