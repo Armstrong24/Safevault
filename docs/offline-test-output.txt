@@ -5,6 +5,17 @@ test_failure_never_hides_last_success (test_automation.Helpers.test_failure_neve
 test_overlapping_run_is_skipped_and_recorded (test_automation.Helpers.test_overlapping_run_is_skipped_and_recorded) ... ok
 test_public_guard_blocks_version_ids (test_automation.Helpers.test_public_guard_blocks_version_ids) ... ok
 test_scrub_removes_private_identifiers (test_automation.Helpers.test_scrub_removes_private_identifiers) ... ok
+test_demo_files_get_five_categories (test_features.Catalog.test_demo_files_get_five_categories) ... ok
+test_encrypted_csv_is_flagged (test_features.Catalog.test_encrypted_csv_is_flagged) ... ok
+test_magic_bytes_beat_wrong_extension (test_features.Catalog.test_magic_bytes_beat_wrong_extension) ... ok
+test_manifest_records_category_and_category_restore (test_features.Catalog.test_manifest_records_category_and_category_restore) ... ok
+test_ransomware_extension_is_suspicious (test_features.Catalog.test_ransomware_extension_is_suspicious) ... ok
+test_first_user_must_be_admin_and_weak_passwords_refused (test_features.Login.test_first_user_must_be_admin_and_weak_passwords_refused) ... ok
+test_lockout_after_three_failures (test_features.Login.test_lockout_after_three_failures) ... ok
+test_login_logout_and_session (test_features.Login.test_login_logout_and_session) ... ok
+test_password_stored_only_as_salted_hash (test_features.Login.test_password_stored_only_as_salted_hash) ... ok
+test_roles (test_features.Login.test_roles) ... ok
+test_tampered_or_expired_session_refused (test_features.Login.test_tampered_or_expired_session_refused) ... ok
 test_access_denied_counted (test_lite.Lite.test_access_denied_counted) ... ok
 test_admin_source_identity_refused (test_lite.Lite.test_admin_source_identity_refused) ... ok
 test_all_documented_commands_dispatch (test_lite.Lite.test_all_documented_commands_dispatch) ... ok
@@ -53,7 +64,6 @@ test_symlink_directory_refused (test_safevault.Lab.test_symlink_directory_refuse
 test_traversal_archive_refused_even_with_matching_archive_hash (test_safevault.Lab.test_traversal_archive_refused_even_with_matching_archive_hash) ... ok
 
 ----------------------------------------------------------------------
-Ran 53 tests in 2.979s
+Ran 64 tests in 6.994s
 
 OK
-2026-10-08T11:44:21.802691+00:00 SKIPPED: previous backup still running (no overlap allowed).
