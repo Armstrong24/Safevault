@@ -1,7 +1,10 @@
-# Netlify deploy settings for the SafeVault dashboard + chatbot function.
+# Netlify deploy settings for the SafeVault dashboard (login + results + chatbot functions).
 [build]
   publish = "website"
   functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"   # bundles netlify/lib/auth.mjs into each function
 
 [[headers]]
   for = "/*"
