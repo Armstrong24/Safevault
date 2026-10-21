@@ -81,7 +81,7 @@ Safevault/
 ├── tests/                  60 offline tests + simulated AWS CLI (tests/fakeaws/aws)
 ├── docs/SETUP.md           step-by-step AWS, cron and Netlify setup
 ├── docs/offline-test-output.txt   output of the 60 offline tests
-└── report/                 project report (.docx) and architecture diagram
+└── report/                 architecture diagram
 ```
 
 ## Getting started
