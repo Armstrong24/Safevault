@@ -18,6 +18,7 @@ Adds four things on top of the unchanged backup engine (safevault.py):
 Nothing here creates AWS resources or embeds credentials. AWS profiles are configured by
 the operator with `aws configure --profile ...`.
 """
+import base64
 import contextlib
 import datetime as dt
 import fcntl
@@ -36,6 +37,7 @@ import uuid
 
 import lite
 import safevault as sv
+import catalog
 
 DASHBOARD_BUCKET = 'safevault-dashboard-8b4c47'
 DASHBOARD_KEY = 'dashboard-data.json'
@@ -46,7 +48,9 @@ RESTORE_PROFILE = 'safevault-lite-recovery'
 PUBLISH_PROFILE = 'safevault-lite-recovery'
 CRON_MARK = '# SAFEVAULT_LITE_SCHEDULE'
 SHOWN_RUNS = 12
-DASHBOARD_VERSION = 2
+DASHBOARD_VERSION = 3
+DOWNLOAD_LIMIT_BYTES = 400_000   # per file; only verified synthetic files are offered for download
+SHOWN_EVENTS = 30
 
 
 # ---------------------------------------------------------------- small helpers
@@ -131,6 +135,21 @@ def compare(baseline, restored):
     return missing, changed, unexpected
 
 
+def preview(data, limit=160):
+    """Short, safe look at a file's first bytes: readable text, or dots for unreadable bytes."""
+    if not data:
+        return ''
+    head = data[:limit]
+    if catalog.looks_like_text(head[:4096]):
+        return head.decode('utf-8', 'replace')
+    return ''.join(chr(b) if 32 <= b < 127 else '\u00b7' for b in head[:72])
+
+
+def file_list(folder):
+    """Name, category and size of every file in a folder (used for the user dashboard)."""
+    return [{'path': f['path'], 'category': f['category'], 'size': f['size']} for f in catalog.scan(folder)]
+
+
 def say(title):
     print('\n== ' + title + ' ' + '=' * max(3, 60 - len(title)))
 
@@ -165,7 +184,7 @@ def run_backup(args):
             record.update(outcome='success', run_id=receipt['run_id'], archive_bytes=receipt['archive_bytes'],
                           file_count=receipt['file_count'], source_bytes=receipt['source_bytes'],
                           data_cutoff_utc=receipt['data_cutoff_utc'], matches_clean_baseline=clean,
-                          selected_as_clean=selected)
+                          selected_as_clean=selected, files=file_list(c['source_directory']))
         except Exception as e:  # recorded honestly, then re-raised below
             failure = e
             record.update(outcome='failed', error=scrub(e))
@@ -219,6 +238,7 @@ def do_cloud_restore(context):
         restored = lite.hashes(destination)
         missing, changed, unexpected = compare(baseline, restored)
         usable = csv_usable(destination)
+        record['files'] = [{'path': rel, 'ok': restored.get(rel) == h} for rel, h in sorted(baseline.items())]
         record.update(destination=str(destination), restore_seconds=round(result['restore_seconds'], 3),
                       files_restored=len(restored), files_matched=len(baseline) - len(missing) - len(changed),
                       missing=missing, changed=changed, unexpected=unexpected, csv_usable=usable)
@@ -353,16 +373,24 @@ def ransomware_drill(args):
     say('Step 2/4  Simulated ransomware encrypts the copy')
     key = os.urandom(32)
     files = sorted(p for p in victim.rglob('*') if p.is_file())
+    per_file = []
     for p in files:
         data = p.read_bytes()
+        before = catalog.classify(p)
         scrambled = bytes(b ^ key[i % 32] for i, b in enumerate(data))
-        p.with_name(p.name + '.locked').write_bytes(b'SIMULATED-RANSOMWARE-NO-MALWARE\n' + scrambled)
+        locked = p.with_name(p.name + '.locked')
+        locked.write_bytes(b'SIMULATED-RANSOMWARE-NO-MALWARE\n' + scrambled)
         p.unlink()  # only inside the disposable drill copy
+        per_file.append({'path': p.relative_to(victim).as_posix(), 'size': len(data), 'category': before['category'],
+                         'before_preview': preview(data), 'locked_name': locked.name,
+                         'after_category': catalog.classify(locked)['category'], 'after_preview': preview(scrambled),
+                         'readable_after_attack': False})
     (victim / 'READ_ME_SIMULATED_RANSOM_NOTE.txt').write_text(
         'This is a SAFE classroom simulation for SafeVault. No real malware was used.\n')
     readable = sum(1 for rel, h in baseline.items() if (victim / rel).is_file() and sv.digest(victim / rel) == h)
     drill['encrypted_utc'] = lite.stamp()
     drill['files_encrypted'] = len(files)
+    drill['files'] = per_file
     drill['readable_after_attack'] = readable
     print(str(len(files)) + ' files replaced by .locked copies. Readable originals left: ' + str(readable) + '/' + str(len(baseline)))
     print('attendance.csv now: ' + str((victim / 'records/attendance.csv.locked').read_bytes()[:40]) + ' ...')
@@ -404,6 +432,7 @@ def ransomware_drill(args):
         drill['attacker_blocked'] = all(v == 'denied' for v in attempts.values())
         print('The delete test used a disposable canary object, never the real clean backup.')
 
+    drill['attack_finished_utc'] = lite.stamp()
     say('Step 4/4  Recover the clean backup from S3 and verify')
     detected = time.monotonic()
     r = do_cloud_restore('ransomware-drill')
@@ -413,6 +442,9 @@ def ransomware_drill(args):
                  time_to_recover_seconds=round(time.monotonic() - detected, 3),
                  backup_cutoff_utc=r['backup_cutoff_utc'], finished_utc=lite.stamp(),
                  disposable_folder=str(victim.parent))
+    recovered_ok = {f['path']: f['ok'] for f in r.get('files') or []}
+    for f in drill['files']:
+        f['recovered'] = recovered_ok.get(f['path'], False)
     drill['outcome'] = 'passed' if drill['recovered'] and drill.get('attacker_blocked', True) is not False else 'failed'
     lite.save(folder / 'drill.json', drill)
     append_jsonl(folder / 'drills.jsonl', drill)
@@ -504,9 +536,18 @@ def build_dashboard_data():
         d = lite.read(folder / 'drill.json')
         data['drill'] = {k: d.get(k) for k in ('started_utc', 'finished_utc', 'outcome', 'files_encrypted', 'readable_after_attack',
                                                 'attacker_attempts', 'attacker_blocked', 'recovered', 'files_matched', 'files_expected',
-                                                'restore_seconds', 'time_to_recover_seconds', 'backup_cutoff_utc')}
+                                                'restore_seconds', 'time_to_recover_seconds', 'backup_cutoff_utc',
+                                                'encrypted_utc', 'attack_finished_utc', 'files')}
     else:
         data['drill'] = None
+
+    # User dashboard: the files in the vault, what happened to them, and downloads
+    files, downloads = vault_files(runs, recoveries, clean)
+    data['files'] = files
+    data['downloads'] = downloads
+    data['categories'] = catalog.summarise(files) if files else []
+    data['activity'] = activity(runs, recoveries, read_jsonl(folder / 'fetches.jsonl'), read_jsonl(folder / 'drills.jsonl'),
+                                read_jsonl(folder / 'scans.jsonl'))
 
     # Checklist (each item true only from a real record)
     checks = data['checks']
@@ -529,6 +570,78 @@ def build_dashboard_data():
     return data
 
 
+def vault_files(runs, recoveries, clean):
+    """Files held in the selected clean backup (the synthetic department data), with their history.
+
+    Only files whose SHA-256 matches the independent clean baseline are listed and offered for
+    download, so nothing except the synthetic project data can ever be published."""
+    source = lite.LAB / 'restored-good'
+    baseline_file = lite.LAB / 'known-good-hashes.json'
+    if not source.is_dir() or not baseline_file.exists():
+        return [], {}
+    baseline = lite.read(baseline_file)
+    fetches = read_jsonl(state() / 'fetches.jsonl')
+    successes = [r for r in runs if r.get('outcome') == 'success']
+    latest_restore = next((r for r in reversed(recoveries) if r.get('files')), None)
+    restored_ok = {f['path']: f['ok'] for f in (latest_restore or {}).get('files', [])}
+    files, downloads = [], {}
+    for f in catalog.scan(source):
+        path = f['path']
+        if baseline.get(path) != sv.digest(source / path):
+            continue
+        data = (source / path).read_bytes()
+        uploaded = [r for r in successes if any(x.get('path') == path for x in r.get('files') or [])] or successes
+        fetched = [x for x in fetches if any(y.get('path') == path for y in x.get('files') or [])]
+        item = {'path': path, 'name': Path(path).name, 'folder': str(Path(path).parent) if '/' in path else '',
+                'category': f['category'], 'label': catalog.label(f['category']), 'detected_by': f['detected_by'],
+                'warning': f['warning'], 'size': f['size'], 'sha256': baseline[path],
+                'in_clean_backup_utc': clean and clean.get('data_cutoff_utc'),
+                'last_uploaded_utc': uploaded[-1].get('finished_utc') if uploaded else None,
+                'times_uploaded': len(uploaded), 'times_fetched': len(fetched),
+                'last_fetched_utc': fetched[-1].get('fetched_utc') if fetched else None,
+                'last_restore_ok': restored_ok.get(path), 'preview': preview(data, 400),
+                'downloadable': len(data) <= DOWNLOAD_LIMIT_BYTES}
+        if item['downloadable']:
+            downloads[path] = base64.b64encode(data).decode('ascii')
+        files.append(item)
+    return files, downloads
+
+
+def activity(runs, recoveries, fetches, drills, scans):
+    """One newest-first feed of everything that happened to the files."""
+    events = []
+    for r in runs:
+        if r.get('outcome') == 'success':
+            events.append({'utc': r.get('finished_utc'), 'action': 'uploaded', 'trigger': r.get('trigger'), 'outcome': 'success',
+                           'title': str(r.get('file_count')) + ' files backed up to Amazon S3',
+                           'files': [x['path'] for x in r.get('files') or []], 'bytes': r.get('archive_bytes'),
+                           'clean': bool(r.get('selected_as_clean'))})
+        elif r.get('outcome') == 'failed':
+            events.append({'utc': r.get('finished_utc'), 'action': 'upload-failed', 'trigger': r.get('trigger'), 'outcome': 'failed',
+                           'title': 'Backup attempt failed', 'detail': r.get('error'), 'files': []})
+    for r in recoveries:
+        events.append({'utc': r.get('attempted_utc'), 'action': 'restored', 'outcome': r.get('outcome'), 'trigger': r.get('context'),
+                       'title': str(r.get('files_matched', 0)) + '/' + str(r.get('files_expected')) + ' files restored from S3 and verified',
+                       'files': [x['path'] for x in r.get('files') or []], 'detail': r.get('error')})
+    for r in fetches:
+        what = catalog.label(r['category']) if r.get('category') else (r.get('file') or 'file')
+        events.append({'utc': r.get('fetched_utc'), 'action': 'fetched', 'outcome': r.get('outcome'),
+                       'title': 'Fetched ' + str(r.get('files_fetched', 0)) + ' file(s): ' + what,
+                       'files': [x['path'] for x in r.get('files') or []]})
+    for d in drills:
+        events.append({'utc': d.get('finished_utc'), 'action': 'drill', 'outcome': d.get('outcome'),
+                       'title': 'Ransomware drill: ' + str(d.get('files_encrypted')) + ' encrypted, ' +
+                                str(d.get('files_matched')) + '/' + str(d.get('files_expected')) + ' recovered',
+                       'files': [x['path'] for x in d.get('files') or []]})
+    for c in scans:
+        events.append({'utc': c.get('scanned_utc'), 'action': 'scanned', 'outcome': 'warning' if c.get('warnings') else 'passed',
+                       'title': 'File types checked (' + c.get('where', 'files') + '): ' + str(c.get('files')) + ' files' +
+                                (', ' + str(c['warnings']) + ' warning(s)' if c.get('warnings') else ''), 'files': []})
+    events = [e for e in events if e.get('utc')]
+    events.sort(key=lambda e: e['utc'], reverse=True)
+    return events[:SHOWN_EVENTS]
+
+
 FORBIDDEN = [r'"VersionId"', r'version_id', r'record_key', r'archive_key', r'\b(AKIA|ASIA)[A-Z0-9]{12,}', r'aws_secret', r'\b\d{12}\b', r'arn:aws']
 
 
@@ -547,8 +660,12 @@ def publish_dashboard(quiet=False):
     record['last_attempt_utc'] = lite.stamp()
     try:
         data = build_dashboard_data()
-        text = json.dumps(data, indent=1, sort_keys=True)
-        assert_public_safe(text)
+        downloads = data.pop('downloads', {})
+        assert_public_safe(json.dumps(data, indent=1, sort_keys=True))
+        data['downloads'] = downloads   # only bytes of files that match the synthetic clean baseline
+        text = json.dumps(data, sort_keys=True)
+        if len(text) > 900_000:
+            raise lite.LabError('Dashboard data too large.')
         out = lite.RESULTS / 'dashboard-data.json'
         out.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         out.write_text(text + '\n')

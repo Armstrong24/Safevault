@@ -28,6 +28,9 @@ Department data is often backed up by hand to pen drives or shared folders conne
 | Safe ransomware drill | `python3 lite.py ransomware-drill` | A disposable copy is encrypted; the uploader key is denied read, list, delete and unlock; recovery is verified |
 | Status | `python3 lite.py status` | Summary of runs and checks in the terminal |
 | Publish results | automatic, or `python3 lite.py publish` | Sanitized `dashboard-data.json` for the dashboard (no file names, keys or private data) |
+| User dashboard: My Files | `website/index.html` + `netlify/functions/data.mjs`, `file.mjs` | Every file in the clean backup with its type, size, upload and fetch history, SHA-256, preview and **download** (bytes re-checked by SHA-256 on the server) |
+| User dashboard: Activity | automatic | One timeline of uploads, fetches, restores, type checks and drills, with the files involved |
+| User dashboard: Ransomware Drill | automatic after `ransomware-drill` | Step-by-step replay: normal files → renamed to `.locked` and scrambled → stolen key gets AccessDenied → each file restored from S3 and verified |
 | Dashboard + chatbot | `website/index.html`, `netlify/functions/` | Sign-in page, then results refreshing every 60 s; Groq chatbot behind a server-side function |
 
 ## Architecture
@@ -74,7 +77,7 @@ Safevault/
 ├── automation.py           scheduling, cloud restore, protection check, ransomware drill, dashboard publisher
 ├── catalog.py              file type / category detection and fetch by category
 ├── website/index.html      dashboard
-├── netlify/functions/      login.mjs, data.mjs, chat.mjs (dashboard login, results, chatbot)
+├── netlify/functions/      login.mjs, data.mjs, file.mjs, chat.mjs (login, results, file downloads, chatbot)
 ├── netlify/lib/auth.mjs    password hash check and signed tokens
 ├── scripts/make_dashboard_user.py   makes a hashed dashboard login for Netlify
 ├── scripts/install_cli.py  AWS CLI install helper

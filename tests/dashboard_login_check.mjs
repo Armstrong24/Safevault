@@ -24,6 +24,9 @@ assert.equal(auth.verifyToken(forged), null);
 assert.equal(auth.verifyToken(token, Date.now() + 61 * 60000), null);
 // data endpoint needs a token
 r = await data(new Request('https://x/data')); assert.equal(r.status, 401);
+const file = (await import('../netlify/functions/file.mjs')).default;
+r = await file(new Request('https://x/file?path=records/attendance.csv')); assert.equal(r.status, 401);
+r = await file(new Request('https://x/file?path=../etc/passwd', { headers: { authorization: 'Bearer ' + token } })); assert.equal(r.status, 400);
 // lockout after 5 wrong passwords
 for (let i = 0; i < 5; i++) await post({ username: 'arnav', password: 'bad' + i + 'xxxxx' }, '3.3.3.' + i);
 r = await post({ username: 'arnav', password: 'Vault2026x' }, '4.4.4.4'); assert.equal(r.status, 429);

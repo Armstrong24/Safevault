@@ -10,10 +10,10 @@ body{margin:0;background:radial-gradient(1200px 600px at 10% -10%,var(--bg2) 0,v
 button,select,input{font:inherit}
 code{font:12.5px ui-monospace,SFMono-Regular,Consolas,monospace;background:var(--card2);border:1px solid var(--line);padding:1px 6px;border-radius:6px;color:var(--txt)}
 header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 32px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--hdr);backdrop-filter:blur(10px);z-index:10}
-.brand{display:flex;align-items:center;gap:12px}.brand strong{font-size:19px;letter-spacing:.3px;display:block;line-height:1.1}.brand small{color:var(--mut);font-size:12.5px}
+.brand{display:flex;align-items:center;gap:12px}.brand strong{font-size:19px;letter-spacing:.3px;display:block;line-height:1.1}.brand small{color:var(--mut);font-size:12.5px;white-space:nowrap}
 .logo{width:36px;height:36px;display:grid;place-items:center;border-radius:10px;background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 4px 14px rgba(108,140,255,.4)}.logo svg{width:20px;height:20px}
-nav{display:flex;align-items:center;gap:8px}
-nav .tab{background:none;border:1px solid var(--line);color:var(--mut);padding:7px 16px;border-radius:999px;cursor:pointer;transition:.15s}
+nav{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+nav .tab{background:none;border:1px solid var(--line);color:var(--mut);padding:6px 13px;font-size:13.5px;border-radius:999px;cursor:pointer;transition:.15s}
 nav .tab:hover{color:var(--txt);border-color:var(--acc)}nav .tab.active{background:var(--acc);border-color:var(--acc);color:#fff}
 .theme-control{display:flex;align-items:center;gap:6px;color:var(--mut);font-size:12px;margin-left:6px}
 .theme-control select{background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:999px;padding:6px 10px;cursor:pointer}
@@ -122,6 +122,46 @@ body.locked header,body.locked main,body.locked #chat-btn,body.locked #chat{disp
 #login-err{min-height:20px;margin-top:12px;color:var(--bad);font-size:13px}
 .login-card small{display:block;color:var(--mut);font-size:11.5px;margin-top:10px;line-height:1.45}
 #who{color:var(--mut);font-size:12.5px;margin-left:4px}#logout{background:none;border:1px solid var(--line);color:var(--mut);padding:7px 14px;border-radius:999px;cursor:pointer}#logout:hover{color:var(--txt);border-color:var(--bad)}
+/* ---- user dashboard: files, activity, drill replay */
+.uhero{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:18px}
+.uhero h1{font-size:32px;margin:0 0 6px}.uhero p{color:var(--mut);margin:0;max-width:640px}
+.cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:18px}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;text-align:left;color:var(--txt);transition:.15s}
+.cat:hover,.cat.on{border-color:var(--acc);box-shadow:0 0 0 3px rgba(108,140,255,.12)}
+.cat .ic{font-size:22px}.cat b{display:block;font-size:22px;margin-top:4px}.cat small{color:var(--mut);font-size:12px;display:block}
+.filebar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--line)}
+.filebar input{flex:1 1 220px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card2);color:var(--txt);outline:none}
+.fname{display:flex;gap:10px;align-items:center}.fname .ic{font-size:20px}.fname b{display:block;font-weight:650}.fname small{color:var(--mut);font-size:11.5px}
+.mini{font:12px ui-monospace,Consolas,monospace;color:var(--mut)}
+.act{display:flex;gap:6px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--card2);color:var(--txt);padding:6px 11px;border-radius:9px;cursor:pointer;font-size:12.5px}
+.btn:hover{border-color:var(--acc)}.btn[disabled]{opacity:.45;cursor:not-allowed}
+.prev td{background:var(--card2)}
+.prev pre{margin:0;white-space:pre-wrap;word-break:break-all;font:12.5px ui-monospace,Consolas,monospace;max-height:220px;overflow:auto}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chips button{border:1px solid var(--line);background:var(--card2);color:var(--mut);padding:5px 12px;border-radius:999px;cursor:pointer;font-size:12.5px}
+.chips button.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.tl{list-style:none;margin:0;padding:8px 20px 14px}
+.tl li{display:grid;grid-template-columns:42px 1fr auto;gap:12px;padding:12px 0;border-bottom:1px dashed var(--line);align-items:start}.tl li:last-child{border-bottom:0}
+.tl .bub{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:18px;background:var(--card2);border:1px solid var(--line)}
+.tl .bub.up{background:rgba(108,140,255,.15)}.tl .bub.down{background:var(--good-bg)}.tl .bub.bad{background:var(--bad-bg)}.tl .bub.warn{background:var(--warn-bg)}
+.tl b{display:block;font-size:14px}.tl small{color:var(--mut);font-size:12px}
+.fchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.fchips span{font-size:11.5px;padding:2px 8px;border-radius:7px;background:var(--card2);border:1px solid var(--line);color:var(--mut)}
+.stepper{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:16px 20px}
+.stp{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card2);opacity:.5;transition:.3s}
+.stp.on{opacity:1;border-color:var(--acc);box-shadow:0 0 0 3px rgba(108,140,255,.15)}.stp.done{opacity:1}
+.stp strong{display:block;font-size:11.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--mut)}.stp span{font-weight:700;font-size:14px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;padding:4px 20px 18px}
+.dcard{border:2px solid var(--good);border-radius:14px;padding:12px;background:var(--card2);transition:border-color .4s,background .4s,transform .3s;position:relative}
+.dcard.hit{border-color:var(--bad);background:var(--bad-bg);animation:shake .35s}
+.dcard.fix{border-color:var(--good);background:var(--good-bg)}
+.dcard .n{font-weight:700;word-break:break-all;font-size:13.5px}.dcard .t{font-size:11.5px;margin:4px 0 8px}
+.dcard pre{margin:0;height:58px;overflow:hidden;white-space:pre-wrap;word-break:break-all;font:11.5px ui-monospace,Consolas,monospace;color:var(--mut);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px}
+.dcard .st{margin-top:8px;font-size:12px;font-weight:650}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.alog{margin:0 20px 16px;padding:12px 14px;border-radius:12px;background:#05080e;color:#cfd8e3;font:12.5px/1.6 ui-monospace,Consolas,monospace;min-height:44px}
+.alog .den{color:#ff6b81;font-weight:700}.alog .ok{color:#2ed39a;font-weight:700}
+@media(max-width:800px){.stepper{grid-template-columns:repeat(2,1fr)}.tl li{grid-template-columns:38px 1fr}.tl li>small:last-child{grid-column:2}}
+@media(max-width:1300px){.brand small,.theme-control span{display:none}}
 @media(max-width:1000px){.hero{grid-template-columns:1fr}.layout{grid-template-columns:1fr}.grid4{grid-template-columns:repeat(2,1fr)}.flow{grid-template-columns:repeat(2,1fr)}.flow>div::after{display:none}.steps,.defs{grid-template-columns:1fr}.arrow{display:none}}
 @media(max-width:560px){header{padding:12px 16px;flex-wrap:wrap}.grid4{grid-template-columns:1fr}h1{font-size:30px}.theme-control span{display:none}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
@@ -136,9 +176,49 @@ body.locked header,body.locked main,body.locked #chat-btn,body.locked #chat{disp
 <small>Your password is checked on the server against a salted PBKDF2-SHA256 hash. The session ends after 60 minutes.</small>
 </form></section>
 <header><div class="brand"><span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 3.5v6c0 5-3.4 8.8-8 10.5C7.4 20.3 4 16.5 4 11.5v-6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></span><div><strong>SafeVault</strong><small>Ransomware-resilient cloud backup</small></div></div>
-<nav><button class="tab active" data-tab="dash">Dashboard</button><button class="tab" data-tab="how">How it works</button><label class="theme-control" for="theme"><span>Theme</span><select id="theme" aria-label="Color mode"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label><span id="who"></span><button id="logout" type="button">Log out</button></nav></header>
+<nav><button class="tab active" data-tab="files">My Files</button><button class="tab" data-tab="activity">Activity</button><button class="tab" data-tab="drillpage">Ransomware Drill</button><button class="tab" data-tab="dash">System Status</button><button class="tab" data-tab="how">How it works</button><label class="theme-control" for="theme"><span>Theme</span><select id="theme" aria-label="Color mode"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label><span id="who"></span><button id="logout" type="button">Log out</button></nav></header>
 <main>
-<section id="dash" class="page active">
+<section id="files" class="page active">
+<div class="uhero"><div><div class="eyebrow"><span>My SafeVault</span><span class="mode demo" id="fmode">NO DATA</span></div><h1 id="hello">Your protected files</h1><p>Every file in your clean cloud backup, its type, when it was uploaded and fetched, and a download of the verified copy.</p></div>
+<div class="tools"><button id="cloud2" class="primary">↻ Refresh</button></div></div>
+<section class="grid4" aria-label="File summary">
+<div class="metric"><label>Files protected</label><span class="value" id="f-count">—</span><small id="f-count-note">In the clean S3 backup</small></div>
+<div class="metric"><label>Total size</label><span class="value" id="f-size">—</span><small id="f-types">—</small></div>
+<div class="metric"><label>Last upload to S3</label><span class="value" id="f-up">—</span><small id="f-up-note">—</small></div>
+<div class="metric"><label>Last fetch / restore</label><span class="value" id="f-down">—</span><small id="f-down-note">—</small></div>
+</section>
+<div class="cats" id="cats"></div>
+<section class="panel"><div class="heading"><h2>Files in the backup</h2><small id="f-label">ALL TYPES</small></div>
+<div class="filebar"><input id="f-search" placeholder="Search files…" aria-label="Search files"><div class="chips" id="f-chips"></div></div>
+<div class="table-wrap"><table><thead><tr><th scope="col">File</th><th scope="col">Type</th><th scope="col">Size</th><th scope="col">Uploaded</th><th scope="col">Fetched</th><th scope="col">Integrity</th><th scope="col">Actions</th></tr></thead><tbody id="f-rows"><tr><td colspan="7" class="empty">No files published yet. Run a backup on the laptop.</td></tr></tbody></table></div>
+<div class="note">Downloads are the exact bytes from the clean backup. The server checks each file's SHA-256 again before sending it.</div></section>
+</section>
+
+<section id="activity" class="page">
+<div class="uhero"><div><div class="eyebrow"><span>History</span></div><h1>File activity</h1><p>Everything that happened to your files, newest first: uploads to S3, fetches, restores, type checks and ransomware drills.</p></div><div class="chips" id="a-chips"></div></div>
+<section class="panel"><div class="heading"><h2>Timeline</h2><small id="a-label">—</small></div><ul class="tl" id="a-list"><li><span></span><small>No activity yet.</small></li></ul></section>
+</section>
+
+<section id="drillpage" class="page">
+<div class="uhero"><div><div class="eyebrow"><span>Ransomware drill</span><span class="mode demo" id="dr-status">NOT RUN</span></div><h1>How ransomware hits the files, and how SafeVault gets them back</h1><p id="dr-sub">Run <code>python3 lite.py ransomware-drill</code> on the laptop, then replay it here.</p></div>
+<div class="tools"><button id="replay" class="primary">▶ Replay drill</button></div></div>
+<section class="panel"><div class="stepper" id="stepper">
+<div class="stp" data-s="1"><strong>Step 1</strong><span>Normal files</span></div>
+<div class="stp" data-s="2"><strong>Step 2</strong><span>Ransomware encrypts</span></div>
+<div class="stp" data-s="3"><strong>Step 3</strong><span>Stolen key vs S3</span></div>
+<div class="stp" data-s="4"><strong>Step 4</strong><span>Recovered from S3</span></div></div>
+<div class="note" id="dr-say" style="border-top:0;border-bottom:1px solid var(--line)">Press Replay drill to see each step.</div>
+<div class="dgrid" id="dgrid"></div>
+<div class="alog" id="alog">Attacker log appears in step 3.</div></section>
+<section class="grid4" aria-label="Drill numbers">
+<div class="metric"><label>Files encrypted</label><span class="value" id="dr-enc">—</span><small>Disposable copy, no real malware</small></div>
+<div class="metric"><label>Readable after attack</label><span class="value" id="dr-read">—</span><small>Before recovery</small></div>
+<div class="metric"><label>Stolen-key attempts blocked</label><span class="value" id="dr-blk">—</span><small>AccessDenied from AWS</small></div>
+<div class="metric"><label>Recovered and verified</label><span class="value" id="dr-rec">—</span><small id="dr-time">—</small></div>
+</section>
+</section>
+
+<section id="dash" class="page">
 <div class="hero"><div><div class="eyebrow"><span>Cloud Computing project · Amazon S3 · Mumbai (ap-south-1)</span><span id="mode" class="mode demo">NO DATA</span></div>
 <h1>Back up automatically.<br><span>Prove you can recover.</span></h1>
 <p>Scheduled backups of synthetic institutional records go to a versioned, Object-Lock-protected S3 bucket. Every backup, recovery test and ransomware drill publishes its real result here.</p>
@@ -212,7 +292,7 @@ body.locked header,body.locked main,body.locked #chat-btn,body.locked #chat{disp
 <div><code>run-backup</code><span>one backup</span></div><div><code>schedule --install</code><span>automatic backups</span></div><div><code>verify-protection</code><span>read bucket settings</span></div><div><code>cloud-restore</code><span>verified recovery</span></div><div><code>ransomware-drill</code><span>safe attack demo</span></div><div><code>status</code><span>summary</span></div>
 </div></section></div>
 </section>
-<footer><span>Signed-in, read-only page · no AWS keys, archives, object versions or institutional records are published</span><span id="foot-mode">—</span></footer></main>
+<footer><span>Signed-in, read-only page · no AWS keys, archives or object versions are published · synthetic project files only</span><span id="foot-mode">—</span></footer></main>
 <button id="chat-btn" aria-label="Ask SafeVault assistant" aria-expanded="false">💬</button>
 <section id="chat" aria-label="SafeVault assistant"><div class="ch"><div><strong>Ask SafeVault</strong><small id="chat-mode">Built-in answers</small></div><button id="chat-x" aria-label="Close">✕</button></div>
 <div id="msgs" aria-live="polite"></div>
@@ -236,7 +316,7 @@ const ago=v=>{const d=new Date(v);if(!v||isNaN(d))return '—';const s=Math.max(
 const seconds=v=>Number.isFinite(v)?(v<60?v.toFixed(2)+' s':(v/60).toFixed(1)+' min'):'—';
 const size=v=>Number.isFinite(v)?(v>=1048576?(v/1048576).toFixed(2)+' MiB':(v/1024).toFixed(1)+' KiB'):'—';
 const label={success:'Succeeded',failed:'Failed','skipped-overlap':'Skipped (overlap)',passed:'Passed','not-tested':'Not tested'};
-function validate(s){if(!s||s.schema!==1||!['empty','results'].includes(s.kind)||!Array.isArray(s.uploads)||!Array.isArray(s.recoveries)||s.uploads.length>30||s.recoveries.length>30)throw Error('Not a SafeVault results file.');for(const r of s.recoveries){if(r.baseline_matched!==true||r.csv_usable!==true||!Number.isInteger(r.files)||r.files<1||!Number.isFinite(r.restore_seconds)||r.restore_seconds<0||!r.verified_utc||isNaN(new Date(r.verified_utc)))throw Error('Invalid recovery evidence.');}if(s.runs&&(!Array.isArray(s.runs)||s.runs.length>50))throw Error('Invalid run list.');return s;}
+function validate(s){if(!s||s.schema!==1||!['empty','results'].includes(s.kind)||!Array.isArray(s.uploads)||!Array.isArray(s.recoveries)||s.uploads.length>30||s.recoveries.length>30)throw Error('Not a SafeVault results file.');for(const r of s.recoveries){if(r.baseline_matched!==true||r.csv_usable!==true||!Number.isInteger(r.files)||r.files<1||!Number.isFinite(r.restore_seconds)||r.restore_seconds<0||!r.verified_utc||isNaN(new Date(r.verified_utc)))throw Error('Invalid recovery evidence.');}if(s.runs&&(!Array.isArray(s.runs)||s.runs.length>50))throw Error('Invalid run list.');if(s.files&&(!Array.isArray(s.files)||s.files.length>500||s.files.some(f=>typeof f.path!=='string'||typeof f.sha256!=='string')))throw Error('Invalid file list.');if(s.activity&&!Array.isArray(s.activity))throw Error('Invalid activity list.');return s;}
 function rows(id,data,empty,cols){const t=$(id);t.replaceChildren();if(!data.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=cols;td.className='empty';td.textContent=empty;tr.append(td);t.append(tr);return}for(const values of data){const tr=document.createElement('tr');values.forEach((v,i)=>{const td=document.createElement('td');if(i===values.length-1){const span=document.createElement('span');const txt=String(v);span.className='pill'+(/Passed|Succeeded|Clean/.test(txt)?' pass':/Failed/.test(txt)?' fail':/Skipped|changed/.test(txt)?' warn':'');span.textContent=txt;td.append(span);if(v&&v.err){}}else td.textContent=String(v);tr.append(td)});t.append(tr)}}
 function render(s){
  const trials=s.recoveries||[],uploads=s.uploads||[],clean=uploads.find(x=>x.type==='Clean'),b=s.backup||{},rec=s.recovery||(trials.length?{status:'passed',attempted_utc:trials[trials.length-1].verified_utc,files_matched:trials[trials.length-1].files,files_expected:trials[trials.length-1].files}:{status:'not-tested'}),p=s.protection,d=s.drill,c=s.checks||{},runs=s.runs||[];
@@ -290,13 +370,105 @@ function render(s){
   const age=(Date.now()-new Date(s.generated_utc))/60000;if(measured&&age>90){cls='banner';msg+='. Warning: no new results for '+Math.round(age)+' min — the scheduler may be paused (laptop or WSL off).'}
   if(b.last_attempt_outcome==='failed'){cls='banner error';msg+='. The most recent backup attempt FAILED; the last successful backup is still shown.'}}
  banner.className=cls;put('banner',msg);
+ renderUser(s);
 }
-function samples(){const t=n=>new Date(Date.now()-n*60000).toISOString();return{schema:1,kind:'results',data_mode:'demo',generated_utc:t(1),uploads:[{data_cutoff_utc:t(40),archive_bytes:263740,file_count:5,type:'Clean'},{data_cutoff_utc:t(5),archive_bytes:263742,file_count:5,type:'Scheduled'}],recoveries:[{verified_utc:t(20),files:5,restore_seconds:2.4,baseline_matched:true,csv_usable:true},{verified_utc:t(3),files:5,restore_seconds:2.1,baseline_matched:true,csv_usable:true,context:'ransomware-drill'}],checks:{scheduled_runs:true,cloud_recovery:true,retention_metadata:true,protection_verified:true,iam_denials:true,drill_passed:true},backup:{last_attempt_utc:t(5),last_attempt_outcome:'success',last_attempt_trigger:'scheduled',last_success_utc:t(5),last_success_archive_bytes:263742,last_success_file_count:5,total_attempts:4,total_successes:4,total_failures:0,scheduled_successes:3},runs:[0,5,10,15].map(n=>({started_utc:t(5+n),trigger:n===15?'manual':'scheduled',outcome:'success',archive_bytes:263742,duration_seconds:1.9,matches_clean_baseline:true})),recovery:{status:'passed',attempted_utc:t(3),files_matched:5,files_expected:5},protection:{checked_utc:t(30),versioning:'Enabled',object_lock:'Enabled',default_retention:'GOVERNANCE 7 days',encryption:'SSE-S3 (AES-256)',public_access_blocked:true,all_ok:true,clean_backup_retention:[{object:'archive',mode:'GOVERNANCE',retain_until:new Date(Date.now()+6.9*864e5).toISOString()}]},drill:{finished_utc:t(3),outcome:'passed',files_encrypted:5,readable_after_attack:0,attacker_attempts:{a:'denied',b:'denied',c:'denied',d:'denied'},files_matched:5,files_expected:5,time_to_recover_seconds:3.2}}}
+function samples(){const t=n=>new Date(Date.now()-n*60000).toISOString();return{schema:1,kind:'results',data_mode:'demo',generated_utc:t(1),uploads:[{data_cutoff_utc:t(40),archive_bytes:263740,file_count:5,type:'Clean'},{data_cutoff_utc:t(5),archive_bytes:263742,file_count:5,type:'Scheduled'}],recoveries:[{verified_utc:t(20),files:5,restore_seconds:2.4,baseline_matched:true,csv_usable:true},{verified_utc:t(3),files:5,restore_seconds:2.1,baseline_matched:true,csv_usable:true,context:'ransomware-drill'}],checks:{scheduled_runs:true,cloud_recovery:true,retention_metadata:true,protection_verified:true,iam_denials:true,drill_passed:true},backup:{last_attempt_utc:t(5),last_attempt_outcome:'success',last_attempt_trigger:'scheduled',last_success_utc:t(5),last_success_archive_bytes:263742,last_success_file_count:5,total_attempts:4,total_successes:4,total_failures:0,scheduled_successes:3},runs:[0,5,10,15].map(n=>({started_utc:t(5+n),trigger:n===15?'manual':'scheduled',outcome:'success',archive_bytes:263742,duration_seconds:1.9,matches_clean_baseline:true})),recovery:{status:'passed',attempted_utc:t(3),files_matched:5,files_expected:5},protection:{checked_utc:t(30),versioning:'Enabled',object_lock:'Enabled',default_retention:'GOVERNANCE 7 days',encryption:'SSE-S3 (AES-256)',public_access_blocked:true,all_ok:true,clean_backup_retention:[{object:'archive',mode:'GOVERNANCE',retain_until:new Date(Date.now()+6.9*864e5).toISOString()}]},drill:{started_utc:t(4),finished_utc:t(3),outcome:'passed',files_encrypted:5,readable_after_attack:0,attacker_attempts:{'read the clean backup':'denied','list backup versions':'denied','permanently delete a backup version':'denied','shorten Object Lock retention':'denied'},attacker_blocked:true,files_matched:5,files_expected:5,time_to_recover_seconds:3.2,files:SF.map(f=>({path:f[0],category:f[1],size:f[2],before_preview:f[3],locked_name:f[0].split('/').pop()+'.locked',after_category:'suspicious',after_preview:'·Q·#·k··9··x·L··w··@··T·3··',readable_after_attack:false,recovered:true}))},
+ files:SF.map(f=>({path:f[0],name:f[0].split('/').pop(),folder:f[0].includes('/')?f[0].split('/')[0]:'',category:f[1],label:SL[f[1]],detected_by:f[1]==='empty'?'size':'extension',warning:null,size:f[2],sha256:f[4],last_uploaded_utc:t(5),times_uploaded:4,times_fetched:f[1]==='records'?1:0,last_fetched_utc:f[1]==='records'?t(2):null,last_restore_ok:true,preview:f[3],downloadable:true})),
+ categories:SF.map(f=>({category:f[1],label:SL[f[1]],files:1,bytes:f[2]})),
+ activity:[{utc:t(2),action:'fetched',outcome:'passed',title:'Fetched 1 file(s): Records / spreadsheets',files:['records/attendance.csv']},{utc:t(3),action:'drill',outcome:'passed',title:'Ransomware drill: 5 encrypted, 5/5 recovered',files:SF.map(f=>f[0])},{utc:t(3.1),action:'restored',trigger:'ransomware-drill',outcome:'passed',title:'5/5 files restored from S3 and verified',files:SF.map(f=>f[0])},{utc:t(5),action:'uploaded',trigger:'scheduled',outcome:'success',title:'5 files backed up to Amazon S3',files:SF.map(f=>f[0])},{utc:t(10),action:'uploaded',trigger:'scheduled',outcome:'success',title:'5 files backed up to Amazon S3',files:SF.map(f=>f[0])},{utc:t(12),action:'scanned',outcome:'passed',title:'File types checked (clean data): 5 files',files:[]}]}}
+const SL={records:'Records / spreadsheets',web:'Web pages',text:'Text files',empty:'Empty files',binary:'Binary / other data'};
+const SF=[['records/attendance.csv','records',42,'student_id,present\nDEMO001,yes\nDEMO002,no\n','a1'.repeat(32)],['website/index.html','web',40,'<h1>SafeVault synthetic department</h1>\n','b2'.repeat(32)],['file with spaces.txt','text',29,'Synthetic project data only.\n','c3'.repeat(32)],['empty-file.txt','empty',0,'','e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'],['sample.bin','binary',262144,'··u···+Ge·t···@X···:··\'···Y···8','d4'.repeat(32)]];
+// ================= User dashboard: My Files, Activity, Ransomware Drill replay
+const FILE_URL='/.netlify/functions/file';
+const CATL={records:'Records',documents:'Documents',text:'Text',web:'Web page',images:'Image',archives:'Archive',binary:'Binary data',empty:'Empty file',suspicious:'Suspicious'};
+const ICON={records:'📊',documents:'📄',text:'📝',web:'🌐',images:'🖼️',archives:'🗜️',binary:'💾',empty:'📭',suspicious:'☣️'};
+const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
+const bytes=v=>!Number.isFinite(v)?'—':v<1024?v+' B':size(v);
+let shown=null,fCat='all',fText='',aKind='all',openPrev=null;
+function renderUser(s){shown=s;const measured=s.data_mode==='measured'&&!sampleMode;
+ for(const id of ['fmode']){const m=$(id);m.className='mode '+(measured?'measured':'demo');m.textContent=sampleMode?'DEMONSTRATION':measured?'LIVE FROM S3':'NO DATA'}
+ if(session&&session.username)put('hello','Welcome, '+session.username);
+ const ORD=['records','documents','text','web','images','archives','binary','empty'];const files=(s.files||[]).slice().sort((a,b)=>ORD.indexOf(a.category)-ORD.indexOf(b.category)),cats=(s.categories||[]).slice().sort((a,b)=>ORD.indexOf(a.category)-ORD.indexOf(b.category)),acts=s.activity||[];
+ put('f-count',files.length?String(files.length):'—');put('f-count-note',files.length?'In the clean S3 backup · all verified':'No backup published yet');
+ put('f-size',files.length?bytes(files.reduce((a,f)=>a+f.size,0)):'—');put('f-types',cats.length?cats.length+' file types':'—');
+ const up=acts.find(e=>e.action==='uploaded'),down=acts.find(e=>e.action==='fetched'||e.action==='restored');
+ put('f-up',up?ago(up.utc):'—');put('f-up-note',up?when(up.utc)+' · '+(up.trigger||'manual'):'No upload yet');
+ put('f-down',down?ago(down.utc):'—');put('f-down-note',down?down.title:'Nothing fetched yet');
+ // category cards
+ const cw=$('cats');cw.replaceChildren();
+ const all=el('button','cat'+(fCat==='all'?' on':''));all.append(el('span','ic','🗂️'),el('b',null,String(files.length)),el('small',null,'All files'));all.onclick=()=>{fCat='all';renderUser(shown)};cw.append(all);
+ for(const c of cats){const b=el('button','cat'+(fCat===c.category?' on':''));b.append(el('span','ic',ICON[c.category]||'📁'),el('b',null,String(c.files)),el('small',null,c.label),el('small',null,bytes(c.bytes)));b.onclick=()=>{fCat=fCat===c.category?'all':c.category;renderUser(shown)};cw.append(b)}
+ const ch=$('f-chips');ch.replaceChildren();for(const [k,t] of [['all','All']].concat(cats.map(c=>[c.category,c.label.split(' /')[0]]))){const b=el('button',fCat===k?'on':null,t);b.onclick=()=>{fCat=k;renderUser(shown)};ch.append(b)}
+ put('f-label',fCat==='all'?'ALL TYPES':(cats.find(c=>c.category===fCat)||{label:fCat}).label.toUpperCase());
+ // file rows
+ const body=$('f-rows');body.replaceChildren();
+ const list=files.filter(f=>(fCat==='all'||f.category===fCat)&&(!fText||f.path.toLowerCase().includes(fText)));
+ if(!list.length){const tr=el('tr'),td=el('td','empty',files.length?'No files match.':'No files published yet. Run a backup on the laptop.');td.colSpan=7;tr.append(td);body.append(tr)}
+ for(const f of list){const tr=el('tr');
+  const n=el('td'),nb=el('div','fname'),nt=el('div');nt.append(el('b',null,f.name),el('small',null,f.folder?f.folder+'/':'top folder'));nb.append(el('span','ic',ICON[f.category]||'📁'),nt);n.append(nb);
+  const ty=el('td');ty.append(el('span','pill',f.label),el('div','mini','by '+(f.detected_by||'content')));if(f.warning)ty.append(el('div','mini',f.warning));
+  const sz=el('td',null,bytes(f.size));
+  const u=el('td');u.append(el('div',null,ago(f.last_uploaded_utc)),el('div','mini',(f.times_uploaded||0)+' uploads'));
+  const fe=el('td');fe.append(el('div',null,f.times_fetched?ago(f.last_fetched_utc):'Never'),el('div','mini',(f.times_fetched||0)+' fetches'));
+  const ig=el('td');ig.append(el('span','pill '+(f.last_restore_ok===false?'fail':'pass'),f.last_restore_ok===false?'Mismatch':'Verified'),el('div','mini','SHA-256 '+f.sha256.slice(0,12)+'…'));
+  const ac=el('td'),aw=el('div','act'),pv=el('button','btn','👁 Preview'),dl=el('button','btn','⬇ Download');dl.disabled=!f.downloadable;
+  pv.onclick=()=>{openPrev=openPrev===f.path?null:f.path;renderUser(shown)};dl.onclick=()=>download(f,dl);aw.append(pv,dl);ac.append(aw);
+  tr.append(n,ty,sz,u,fe,ig,ac);body.append(tr);
+  if(openPrev===f.path){const pr=el('tr','prev'),td=el('td');td.colSpan=7;td.append(el('div','mini','Full SHA-256: '+f.sha256),el('pre',null,f.size===0?'(empty file)':(f.preview||'(no preview)')+(f.size>400?'\n…':'')));pr.append(td);body.append(pr)}}
+ renderActivity(acts);renderDrill(s.drill);
+}
+async function download(f,btn){
+ if(sampleMode){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([f.preview||''],{type:'application/octet-stream'}));a.download=f.name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);return}
+ btn.disabled=true;const old=btn.textContent;btn.textContent='Downloading…';
+ try{const r=await fetch(FILE_URL+'?path='+encodeURIComponent(f.path),{headers:authHeader(),cache:'no-store'});if(r.status===401){lock('Session ended. Please sign in again.');return}
+  if(!r.ok){let m='HTTP '+r.status;try{m=(await r.json()).error||m}catch(e){}throw Error(m)}
+  const blob=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=f.name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000);btn.textContent='✓ Downloaded'}
+ catch(e){btn.textContent='Failed';alert('Download failed: '+e.message)}
+ finally{setTimeout(()=>{btn.textContent=old;btn.disabled=false},1800)}}
+$('f-search').oninput=e=>{fText=e.target.value.trim().toLowerCase();renderUser(shown)};
+$('cloud2').onclick=refreshCloud;
+// activity
+const AK={uploaded:['⬆','up','Upload'],'upload-failed':['✕','bad','Upload'],fetched:['⬇','down','Fetch'],restored:['♻','down','Restore'],drill:['☣','warn','Drill'],scanned:['🔍','','Type check']};
+function renderActivity(acts){const kinds=[['all','All'],['uploaded','Uploads'],['fetched','Fetches'],['restored','Restores'],['drill','Drills'],['scanned','Type checks']];
+ const c=$('a-chips');c.replaceChildren();for(const [k,t] of kinds){const b=el('button',aKind===k?'on':null,t);b.onclick=()=>{aKind=k;renderActivity(acts)};c.append(b)}
+ const list=acts.filter(e=>aKind==='all'||e.action===aKind||(aKind==='uploaded'&&e.action==='upload-failed'));put('a-label',list.length+' EVENTS');
+ const ul=$('a-list');ul.replaceChildren();if(!list.length){const li=el('li');li.append(el('span'),el('small',null,'No activity of this kind yet.'));ul.append(li);return}
+ for(const e of list){const k=AK[e.action]||['•','',''],li=el('li'),bub=el('span','bub '+(e.outcome==='failed'?'bad':k[1]),k[0]),mid=el('div');
+  mid.append(el('b',null,e.title));const meta=[k[2],e.trigger&&e.trigger!=='manual'?e.trigger:null,e.outcome].filter(Boolean).join(' · ');mid.append(el('small',null,meta+(e.detail?' · '+e.detail:'')));
+  if(e.files&&e.files.length){const fc=el('div','fchips');for(const p of e.files.slice(0,8))fc.append(el('span',null,p));mid.append(fc)}
+  li.append(bub,mid,el('small',null,when(e.utc)));ul.append(li)}}
+// drill replay
+let drillTimer=[],drillKey=null;
+function renderDrill(d){const has=d&&Array.isArray(d.files)&&d.files.length;
+ const st=$('dr-status');st.className='mode '+(d?(d.outcome==='passed'?'measured':'demo'):'demo');st.textContent=d?(d.outcome==='passed'?'PASSED':'FAILED')+' · '+when(d.finished_utc):'NOT RUN';
+ put('dr-sub',d?'Real drill run '+when(d.started_utc)+'. A disposable copy was scrambled (no real malware); your real files and cloud backups were never touched.':'Run python3 lite.py ransomware-drill on the laptop, then replay it here.');
+ put('dr-enc',d?String(d.files_encrypted):'—');put('dr-read',d?d.readable_after_attack+' / '+d.files_expected:'—');
+ const a=d&&d.attacker_attempts;put('dr-blk',a?Object.values(a).filter(v=>v==='denied').length+' / '+Object.keys(a).length:'—');
+ put('dr-rec',d?d.files_matched+' / '+d.files_expected:'—');put('dr-time',d&&Number.isFinite(d.time_to_recover_seconds)?'in '+seconds(d.time_to_recover_seconds):'—');
+ $('replay').disabled=!has;
+ const key=d?d.finished_utc+'|'+sampleMode:null;if(key!==drillKey){drillKey=key;drawDrill(d,has?1:0)}}
+function drawDrill(d,stage){const g=$('dgrid');g.replaceChildren();
+ for(const s of document.querySelectorAll('.stp')){const n=+s.dataset.s;s.classList.toggle('on',n===stage);s.classList.toggle('done',n<stage)}
+ if(!d||!d.files||!d.files.length){g.append(el('div','mini','Older drill records have no per-file detail. Run the drill again to see each file.'));return}
+ for(const f of d.files.slice().sort((a,b)=>['records','text','web','binary','empty'].indexOf(a.category)-['records','text','web','binary','empty'].indexOf(b.category))){const c=el('div','dcard'+(stage===2||stage===3?' hit':stage===4?(f.recovered?' fix':' hit'):''));
+  const enc=stage===2||stage===3;c.append(el('div','n',(ICON[enc?'suspicious':f.category]||'📁')+' '+(enc?f.locked_name:f.path)));
+  const tp=el('div','t');tp.append(el('span','pill '+(enc?'fail':stage===4?'pass':''),enc?'Suspicious (ransomware-style name)':(CATL[f.category]||f.category)+' · '+bytes(f.size)));c.append(tp);
+  c.append(el('pre',null,enc?(f.after_preview||'(scrambled)'):(f.size===0?'(empty file)':(f.before_preview||'(binary data)'))));
+  c.append(el('div','st',stage===1?'✓ Readable':enc?'✕ Encrypted · unreadable':f.recovered?'✓ Restored from S3 · SHA-256 verified':'✕ Not recovered'));
+  c.lastChild.style.color=stage===1||(stage===4&&f.recovered)?'var(--good)':'var(--bad)';if(stage===4)c.style.animation='pop .4s ease '+(g.children.length*0.35)+'s both';g.append(c)}
+ const log=$('alog');if(stage<3){log.textContent='Attacker log appears in step 3.'}
+ else{log.replaceChildren();const a=d.attacker_attempts||{};const lines=Object.entries(a);if(!lines.length)log.textContent='Stolen-key test skipped in this run.';
+  for(const [k,v] of lines){const line=el('div');line.append(document.createTextNode('$ attacker tries to '+k+' … '));line.append(el('span',v==='denied'?'den':'ok',v==='denied'?'AccessDenied (blocked)':v));log.append(line)}
+  if(stage===4){const ok=el('div');ok.append(el('span','ok','✓ Clean backup downloaded from S3 with the read-only recovery user and checked file by file.'));log.append(ok)}}
+ const say=['','Step 1: the department files are normal and readable.','Step 2: ransomware renames every file to .locked and scrambles the bytes. 0 files are readable now, and SafeVault flags them as Suspicious.','Step 3: the attacker uses the stolen laptop key to read, delete or unlock the backups. AWS refuses every attempt.','Step 4: SafeVault downloads the clean version from S3, restores it into a new folder and checks every SHA-256 hash.'];
+ put('dr-say',say[stage]||'Press Replay drill to see each step.')}
+function replay(){const d=shown&&shown.drill;if(!d)return;drillTimer.forEach(clearTimeout);drillTimer=[];[1,2,3,4].forEach((s,i)=>drillTimer.push(setTimeout(()=>drawDrill(d,s),i*2600)))}
+$('replay').onclick=replay;
 async function refreshCloud(){if(!authed()){lock('Session ended. Please sign in again.');return}
- const btn=$('cloud');btn.disabled=true;put('cloud','Connecting…');const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),12000);
+ const btn=$('cloud');btn.disabled=true;$('cloud2').disabled=true;put('cloud','Connecting…');const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),12000);
  try{const r=await fetch(DATA_URL,{cache:'no-store',headers:authHeader(),signal:ctl.signal});if(r.status===401){lock('Session ended. Please sign in again.');return}if(!r.ok){let m='HTTP '+r.status;try{m=(await r.json()).error||m}catch(e){}throw Error(m+'.')}const text=await r.text();if(text.length>1048576)throw Error('Data exceeds 1 MiB.');const v=validate(JSON.parse(text));if(!['demo','measured'].includes(v.data_mode))throw Error('data_mode must be demo or measured.');real=v;source='cloud';lastFetch=new Date().toISOString();fetchError=null}
  catch(e){fetchError=e.name==='AbortError'?'Request timed out.':e.message}
- finally{clearTimeout(tm);btn.disabled=false;put('cloud','Refresh from S3');if(!sampleMode)render(real)}}
+ finally{clearTimeout(tm);btn.disabled=false;$('cloud2').disabled=false;put('cloud','Refresh from S3');if(!sampleMode)render(real)}}
 $('cloud').onclick=refreshCloud;
 $('auto').onchange=()=>{clearInterval(timer);timer=$('auto').checked?setInterval(refreshCloud,60000):null};
 $('sample').onclick=()=>{sampleMode=!sampleMode;$('sample').setAttribute('aria-pressed',String(sampleMode));put('sample',sampleMode?'Return to dashboard':'View demonstration');render(sampleMode?samples():real)};
@@ -328,6 +500,7 @@ const KB=[
  [/architecture|how.*work|flow|component|stack|aws service/,'Flow: cron → Python backup engine → AWS CLI with the upload-only user → private S3 bucket (Versioning, Object Lock, SSE-S3). Recovery: read-only user downloads the selected versions → verify → restore. Results: sanitized JSON → public S3 object → this Netlify page.'],
  [/login|password|sign in|log in|authenticat/,'The dashboard opens only after you sign in. A Netlify Function checks the password on the server against a salted PBKDF2-SHA256 hash (310,000 rounds), then gives the browser a signed token that expires after 60 minutes. 5 wrong passwords lock the user for 5 minutes. Passwords are never stored in plain text.'],
  [/categor|file type|fetch/,'lite.py categories identifies each file type from its extension and first bytes (magic numbers): records (CSV), web, text, binary, empty and more, and flags ransomware-style names like .locked. lite.py fetch --category records restores only that category from the clean S3 backup and checks it by hash.'],
+ [/download|my files|uploaded|activity|history|fetched/,'The My Files tab lists every file in the clean S3 backup with its type, size, upload and fetch history and SHA-256, and each one can be previewed or downloaded. Downloads are the exact clean bytes, re-checked by SHA-256 on the server. The Activity tab shows every upload, fetch, restore, type check and drill, newest first.'],
  [/team|member|who/,'SafeVault is a four-member Cloud Computing group project.'],
 ];
 function liveAnswer(q){const s=real||{},b=s.backup||{},r=s.recovery||{},d=s.drill,p=s.protection;
@@ -348,7 +521,7 @@ $('chat-form').onsubmit=e=>{e.preventDefault();const v=$('chat-in').value;$('cha
 for(const c of $('chips').querySelectorAll('button'))c.onclick=()=>ask(c.textContent);
 
 // ---- UI extras: tabs + evidence ring (display only)
-for(const b of document.querySelectorAll('nav .tab'))b.onclick=()=>{for(const x of document.querySelectorAll('nav .tab'))x.classList.toggle('active',x===b);for(const p of document.querySelectorAll('.page'))p.classList.toggle('active',p.id===b.dataset.tab);window.scrollTo({top:0})};
+for(const b of document.querySelectorAll('nav .tab'))b.onclick=()=>{for(const x of document.querySelectorAll('nav .tab'))x.classList.toggle('active',x===b);for(const p of document.querySelectorAll('.page'))p.classList.toggle('active',p.id===b.dataset.tab);window.scrollTo({top:0});if(b.dataset.tab==='drillpage')replay()};
 function updateRing(){const all=document.querySelectorAll('#checks .dot').length,ok=document.querySelectorAll('#checks .dot.pass').length,C=452.4;$('ring-fill').style.strokeDashoffset=String(all?C*(1-ok/all):C);$('ring-n').textContent=ok+'/'+all;$('ring-text').textContent=!all?'Waiting for results':ok===all?'All evidence recorded':ok?'Partly verified':'No evidence recorded yet'}
 new MutationObserver(updateRing).observe($('checks'),{childList:true,subtree:true});updateRing();
 </script></body></html>

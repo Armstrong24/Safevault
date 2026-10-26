@@ -162,8 +162,13 @@ def categories_cmd(args):
     lite.STATE.mkdir(parents=True, exist_ok=True, mode=0o700)
     lite.save(lite.STATE / 'categories.json', {'scanned_utc': lite.stamp(), 'folder': str(folder),
                                               'summary': summarise(files), 'warnings': len(warnings)})
+    import automation
+    where = 'clean data' if not args.folder else ('drill copy' if 'drill-' in str(folder) else 'chosen folder')
+    automation.append_jsonl(lite.STATE / 'scans.jsonl', {'scanned_utc': lite.stamp(), 'where': where, 'files': len(files),
+                                                         'warnings': len(warnings), 'summary': summarise(files)})
     print('\n' + str(len(files)) + ' files in ' + str(len(summarise(files))) + ' categories' +
           (' · ' + str(len(warnings)) + ' warning(s)' if warnings else ' · no type mismatches'))
+    automation.publish_dashboard(quiet=True)
     return 0
 
 
@@ -219,7 +224,8 @@ def fetch_cmd(args):
     matched = [e for e in fetched if (destination / e['path']).is_file() and sv.digest(destination / e['path']) == baseline.get(e['path'])]
     record = {'fetched_utc': lite.stamp(), 'backup_run_id': receipt['run_id'], 'category': args.category,
               'file': args.file, 'files_fetched': len(fetched), 'files_matched': len(matched),
-              'seconds': round(time.monotonic() - t0, 3)}
+              'seconds': round(time.monotonic() - t0, 3),
+              'files': [{'path': e['path'], 'category': e['category'], 'size': e['size'], 'ok': e in matched} for e in fetched]}
     record['outcome'] = 'passed' if fetched and len(matched) == len(fetched) else ('empty' if not fetched else 'failed')
     automation.append_jsonl(folder / 'fetches.jsonl', record)
     if not fetched:
@@ -238,6 +244,7 @@ def fetch_cmd(args):
           (label(args.category) if args.category else 'file') + ' verified against the clean SHA-256 baseline.')
     print('Archive fully validated (' + str(result['validated_files']) + ' files); only the requested files were written.')
     print('Fetched into NEW folder: ' + str(destination))
+    automation.publish_dashboard(quiet=True)
     return 0
 
 

@@ -96,6 +96,18 @@ class EndToEndSimulatedAWS(unittest.TestCase):
             self.assertEqual(data['data_mode'], 'measured')
             self.assertGreaterEqual(data['backup']['scheduled_successes'], 2)
             self.assertTrue(all(data['checks'][k] for k in ('scheduled_runs', 'cloud_recovery', 'protection_verified', 'drill_passed', 'attacker_blocked')))
+            # user dashboard: files with types, activity feed, per-file drill story, verified downloads
+            import base64, hashlib
+            self.assertEqual(len(data['files']), 5)
+            self.assertEqual({f['path']: f['category'] for f in data['files']}['records/attendance.csv'], 'records')
+            for f in data['files']:
+                self.assertEqual(hashlib.sha256(base64.b64decode(data['downloads'][f['path']])).hexdigest(), f['sha256'])
+            actions = {e['action'] for e in data['activity']}
+            self.assertTrue({'uploaded', 'fetched', 'restored', 'drill', 'scanned'} <= actions)
+            self.assertEqual(next(f for f in data['files'] if f['path'] == 'records/attendance.csv')['times_fetched'], 1)
+            self.assertTrue(all(f['after_category'] == 'suspicious' and f['recovered'] for f in data['drill']['files']))
+            self.assertTrue(all(f['locked_name'].endswith('.locked') for f in data['drill']['files']))
+            data.pop('downloads')
             raw = json.dumps(data)
             for bad in ('VersionId', '123456789012', 's3-bucket-fcc-project', home):
                 self.assertNotIn(bad, raw)

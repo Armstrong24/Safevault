@@ -43,9 +43,14 @@ async function liveSummary() {
     const r = await fetch(DATA_URL + '?t=' + Date.now(), { cache: 'no-store' });
     if (!r.ok) return 'Live results unavailable (HTTP ' + r.status + ').';
     const d = await r.json();
+    const drill = d.drill ? { ...d.drill, files: (d.drill.files || []).map(f => ({ path: f.path, category: f.category,
+      locked_name: f.locked_name, after_category: f.after_category, recovered: f.recovered })) } : d.drill;
+    const files = (d.files || []).map(f => ({ path: f.path, type: f.label, size: f.size, times_fetched: f.times_fetched,
+      last_fetched_utc: f.last_fetched_utc }));
+    const activity = (d.activity || []).slice(0, 8).map(e => ({ utc: e.utc, title: e.title, outcome: e.outcome }));
     const pick = { data_mode: d.data_mode, generated_utc: d.generated_utc, backup: d.backup, recovery: d.recovery,
-      drill: d.drill, protection: d.protection, checks: d.checks, recent_runs: (d.runs || []).slice(0, 5) };
-    return JSON.stringify(pick).slice(0, 6000);
+      drill, protection: d.protection, checks: d.checks, files, categories: d.categories, recent_activity: activity };
+    return JSON.stringify(pick).slice(0, 9000);
   } catch { return 'Live results unavailable.'; }
 }
 
