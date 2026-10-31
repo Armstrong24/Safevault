@@ -27,7 +27,7 @@ Department data is often backed up by hand to pen drives or shared folders conne
 | Cloud recovery | `python3 lite.py cloud-restore` | A chosen clean version is downloaded, restored to a new folder and matched 5/5 by hash against a separate baseline |
 | Safe ransomware drill | `python3 lite.py ransomware-drill` | A disposable copy is encrypted; the uploader key is denied read, list, delete and unlock; recovery is verified |
 | Status | `python3 lite.py status` | Summary of runs and checks in the terminal |
-| Publish results | automatic, or `python3 lite.py publish` | Sanitized `dashboard-data.json` for the dashboard (no file names, keys or private data) |
+| Publish results | automatic, or `python3 lite.py publish` | Sanitized `dashboard-data.json` for the dashboard (no AWS keys, account IDs, bucket names or home paths) |
 | User dashboard: My Files | `website/index.html` + `netlify/functions/data.mjs`, `file.mjs` | Every file in the clean backup with its type, size, upload and fetch history, SHA-256, preview and **download** (bytes re-checked by SHA-256 on the server) |
 | User dashboard: Activity | automatic | One timeline of uploads, fetches, restores, type checks and drills, with the files involved |
 | User dashboard: Ransomware Drill | automatic after `ransomware-drill` | Step-by-step replay: normal files → renamed to `.locked` and scrambled → stolen key gets AccessDenied → each file restored from S3 and verified |
@@ -46,7 +46,7 @@ every command -> sanitized results -> public dashboard bucket (one JSON file)
       -> Netlify dashboard (polls every 60 s) + chatbot (Netlify Function -> Groq, key kept server-side)
 ```
 
-There is no conventional database. The dashboard is static HTML that reads one sanitized JSON file from S3. The only backend is the Netlify Function for the chatbot, and its API key lives in Netlify environment variables, never in the browser.
+There is no conventional database. The dashboard is static HTML that gets one sanitized JSON file from S3 through the token-gated `data` function. The only backend is a set of Netlify Functions (login, data, file download and chatbot); the Groq key and login secrets live in Netlify environment variables, never in the browser.
 
 ## Dashboard login and file categories
 
@@ -61,7 +61,7 @@ There is no conventional database. The dashboard is static HTML that reads one s
 - **Least-privilege IAM:** the uploader can only upload (it cannot read, list, delete or unlock backups); a separate recovery user can only read.
 - **Integrity:** SHA-256 manifest for every file, checked again after restore.
 - **Encryption:** SSE-S3 at rest, HTTPS-only bucket policy in transit.
-- **Privacy:** the dashboard shows only sanitized results.
+- **Privacy:** published results never include AWS keys, account IDs, bucket names or home paths, and only synthetic data is used.
 - **Dashboard login:** server-side password check against salted hashes, signed expiring tokens, lockout.
 
 ## Tech stack
@@ -76,6 +76,7 @@ Safevault/
 ├── lite.py                 lab commands (entry point for all commands)
 ├── automation.py           scheduling, cloud restore, protection check, ransomware drill, dashboard publisher
 ├── catalog.py              file type / category detection and fetch by category
+├── netlify.toml            Netlify settings for the site and functions
 ├── website/index.html      dashboard
 ├── netlify/functions/      login.mjs, data.mjs, file.mjs, chat.mjs (login, results, file downloads, chatbot)
 ├── netlify/lib/auth.mjs    password hash check and signed tokens
